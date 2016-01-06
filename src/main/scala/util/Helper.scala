@@ -2,12 +2,16 @@ package util
 
 import java.io.File
 
+import fetch.Fetch._
+
 import scalaz._
 
 case class Env(cwd: String, envVars: List[(String, String)])
 case class Error(message: String) extends AnyVal
 
 trait Helper {
+  type Program = State[Error \/ Env, Unit]
+
   val PWD = sys.env("PWD")
 
   private def echo(m: String) = println(s"${Console.CYAN}$m${Console.RESET}")
@@ -27,32 +31,30 @@ trait Helper {
   implicit class StringExt(string: String) {
     import sys.process.Process
 
-    def !(logMessage: String): State[Env, Unit] = State { env =>
-      echo(logMessage)
+    def !(logMessage: String): Program = State { envEither =>
+      val envEither0 = envEither.flatMap { env =>
+        echo(logMessage)
 
-      echo(s"""
-           |Executing...
-           |$string
-           |cwd: ${env.cwd}
-           |envs: ${env.envVars}
+        echo(s"""
+                |Executing...
+                |$string
+                |cwd: ${env.cwd}
+                |envs: ${env.envVars}
         """.stripMargin)
 
-      type A = StateT[({ type l[X] = \/[Error, X] })#l, Env, Unit]
-
-      val a: A = ???
-      a.flatMap(_ => StateT { (env: Env) =>
-        val a: \/[Error, Env] = -\/(Error(""))
-        a
-      })
-
-      Process(string, new File(env.cwd), env.envVars: _*).! match {
-        case 0 => (env, None)
-        case exit_code => (env, Some(Error(s"Command '$string' exited with exit code $exit_code")))
+        Process(string, new File(env.cwd), env.envVars: _*).! match {
+          case 0 => \/-(env)
+          case exit_code => -\/(Error(s"Command '$string' exited with exit code $exit_code"))
+        }
       }
+
+      (envEither0, ())
     }
   }
 
-//  def exec(cwd: String, envs: Envs = List())(f: File => Envs => Unit) = f(new File(cwd))(envs)
+  def modifyEnv(env: Env => Env): Program = ???
+
+  //  def exec(cwd: String, envs: Envs = List())(f: File => Envs => Unit) = f(new File(cwd))(envs)
 
   import java.nio.charset.StandardCharsets
   import java.nio.file.{Paths, Files}
