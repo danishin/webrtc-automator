@@ -7,7 +7,7 @@ import scalaz.effect.{MonadIO, IO}
 
 
 object Build {
-  def run(platform: Platform)(arch: platform.Arch): Program[Unit] = platform match {
+  def run(platform: Platform)(arch: platform.Architecture): Program[Unit] = platform match {
     case Platform.IOS =>
       ???
 

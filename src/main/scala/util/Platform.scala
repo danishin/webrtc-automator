@@ -1,39 +1,36 @@
 package util
 
-sealed trait Architecture {
-  private[util] def value: String
-  def target_arch_identifier: String
-
-  val outArchiveFilePath = s"output/tmp/libWebRTC-$value.a"
-
-}
 
 sealed trait Platform {
-  type Arch <: Architecture
-  protected def allArchs: List[Arch]
+  sealed trait Architecture {
+    private[util] def value: String
+    def target_arch_identifier: String
+    val outArchiveFilePath = s"output/tmp/libWebRTC-$value.a"
+  }
 
-  def getArch(str: String): Option[Arch] = allArchs.find(_.value == str)
+  protected def allArchs: List[Architecture]
+
+  def parseArch(str: String): Option[Architecture] = allArchs.find(_.value == str)
 }
 
 object Platform {
   case object IOS extends Platform {
-    sealed trait Arch extends Architecture
-    case object Sim32 extends Arch {
+    case object Sim32 extends Architecture {
       private[util] val value = "sim32"
       val target_arch_identifier = "ia32"
     }
 
-    case object Sim64 extends Arch {
+    case object Sim64 extends Architecture {
       private[util] val value = "sim64"
       val target_arch_identifier = "x64"
     }
 
-    case object ARMv7 extends Arch {
+    case object ARMv7 extends Architecture {
       private[util] val value = "armv7"
       val target_arch_identifier = "arm"
     }
 
-    case object ARM64 extends Arch {
+    case object ARM64 extends Architecture {
       private[util] val value = "arm64"
       val target_arch_identifier = "arm64"
     }
@@ -42,11 +39,10 @@ object Platform {
   }
 
   case object Android extends Platform {
-    sealed trait Arch extends Architecture
     protected val allArchs = List()
   }
 
-  def from(str: String): Option[Platform] = str match {
+  def parse(str: String): Option[Platform] = str match {
     case "ios" => Some(IOS)
     case "android" => Some(Android)
     case _ => None

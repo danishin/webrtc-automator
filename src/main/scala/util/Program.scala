@@ -49,7 +49,7 @@ trait ProgramOps {
   import Program._
 
   implicit class OptionExt[A](option: Option[A]) {
-    def toProgram(e: AppError): Program[A] = option.fold[Program[A]]( Program.error(e) )( Program.only )
+    def toProgram(e: AppError): Program[A] = option.fold[Program[A]]( Program.error(e) )(Program.only(_))
   }
 }
 
