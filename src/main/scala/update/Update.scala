@@ -5,12 +5,8 @@ import java.io.File
 import util.Program.Env
 import util.{Program, Helper, Platform}
 
-import scalaz.State
-
 object Update extends Helper {
-  import scalaz._
-  import Scalaz._
-  import util.ProgramFunctions._
+  import scalaz.Scalaz._
 
   // FIXME:
   def targetHeaderFilePath(name: String) = s"$PWD/target/headers/ios/$name"

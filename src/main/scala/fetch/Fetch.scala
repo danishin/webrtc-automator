@@ -3,7 +3,6 @@ package fetch
 import util.{Program, Helper, Platform}
 
 object Fetch extends Helper {
-  import util.ProgramFunctions._
   def run(platform: Platform): Program[Unit] = platform match {
     case Platform.IOS =>
       for {

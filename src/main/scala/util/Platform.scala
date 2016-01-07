@@ -1,11 +1,39 @@
 package util
 
-
 sealed trait Platform {
   sealed trait Architecture {
+    val platform: Platform.this.type = Platform.this
+
+    /**
+      * architecture name
+      */
     private[util] def value: String
-    def target_arch_identifier: String
-    val outArchiveFilePath = s"output/tmp/libWebRTC-$value.a"
+
+    /**
+      * Used as value of Environment Variable `GYP_DEFINES='target_arch=?'`
+      */
+    def target_arch: String
+
+    /**
+      * Represent the sub-directory of `output_dir` corresponding to the flavor of the underlying Arhictecture.
+      */
+    def flavor: String
+
+    /**
+      * Extra `ninja -C` flag (notably, `iossim` from `IOS.Simulator`)
+      */
+    val extra_ninja_build_flag: Option[String] = None
+//    val out_dir = s"output/tmp/libWebRTC-$value.a"
+
+    /**
+      * Used as value of Environment Variable `GYP_GENERATOR_FLAGS='output_dir=?'`
+      */
+    final val output_dir = s"out_$value"
+
+    /**
+      * Name of this architecture's output archive file
+      */
+    final val archive_file_name = s"libWebRTC-$value.a"
   }
 
   protected def allArchs: List[Architecture]
@@ -15,27 +43,26 @@ sealed trait Platform {
 
 object Platform {
   case object IOS extends Platform {
-    case object Sim32 extends Architecture {
-      private[util] val value = "sim32"
-      val target_arch_identifier = "ia32"
-    }
-
-    case object Sim64 extends Architecture {
-      private[util] val value = "sim64"
-      val target_arch_identifier = "x64"
+    case object Simulator extends Architecture {
+      private[util] val value = "sim"
+      val target_arch = "ia32"
+      val flavor = "Release-iphonesimulator"
+      override val extra_ninja_build_flag = Some("iossim")
     }
 
     case object ARMv7 extends Architecture {
       private[util] val value = "armv7"
-      val target_arch_identifier = "arm"
+      val target_arch = "arm"
+      val flavor = "Release-iphoneos"
     }
 
     case object ARM64 extends Architecture {
       private[util] val value = "arm64"
-      val target_arch_identifier = "arm64"
+      val target_arch = "arm64"
+      val flavor = "Release-iphoneos"
     }
 
-    protected val allArchs = List(Sim32, Sim64, ARMv7, ARM64)
+    protected val allArchs = List(Simulator, ARMv7, ARM64)
   }
 
   case object Android extends Platform {

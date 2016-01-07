@@ -2,12 +2,11 @@ package util
 
 import java.io.File
 
-import fetch.Fetch._
 import util.Program.{AppError, Env}
 
 import scalaz._
 
-trait Helper {
+trait Helper extends ProgramFunctions {
   import sys.process.Process
   import java.nio.charset.StandardCharsets
   import java.nio.file.{Paths, Files}
@@ -20,11 +19,6 @@ trait Helper {
 
   def echo(m: String): Program[Unit] = Program.only(println(s"${Console.CYAN}$m${Console.RESET}"))
 
-  def exitError(m: String) = {
-    println(s"${Console.RED}Error: $m${Console.RESET}")
-    sys.exit(1)
-  }
-
   def appendToEnv(key: String, value: String) = sys.env.get(key) match {
     case Some(v) if v.nonEmpty =>
       val separator = System.getProperty("path.separator")
@@ -32,6 +26,7 @@ trait Helper {
     case None => value
   }
 
+  // FIXME: Accept variadic arguments and construct using array only to avoid weird behaviors with whitespaces
   def shell(command: String): Program[Unit] = for {
     _ <- echo(env => s"""
                         |Executing...

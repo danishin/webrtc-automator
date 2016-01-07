@@ -1,18 +1,14 @@
-import java.io.File
-
 import build.Build
 import fetch.Fetch
 import update.Update
 import util.Program.{Env, AppError}
-import util.{Program, Helper, Platform}
+import util.{Program, Platform}
 
 import scalaz.{-\/, \/-}
 
-// REFER TO http://stackoverflow.com/questions/32763822/use-of-path-dependent-type-as-a-class-parameter
-//private case class Box(p: Platform)(val a: p.Architecture)
-
 object Application {
   import util.ProgramOps._
+
   def main(args: Array[String]) {
     val program: Program[Unit] = args match {
       case Array("fetch", platformStr) =>
@@ -26,30 +22,22 @@ object Application {
           .flatMap(Update.run)
 
       case Array("build", platformStr, archStr) =>
-//        Platform.parse(platformStr)
-//          .flatMap(p => p.parseArch(archStr).map(a => (p, a)))
-//          .toProgram(AppError(""))
-//          // FIXME: This fails to compile because scala compiler conveniently forgets that `p` is `p.type` and simply opts to `Platform`. Not sure why this happens exactly but this seems to be the problem.
-//          // FIXME: related to singleton type and path-dependent type
-//          .flatMap { case (p, a) => Build.run(p)(a) }
-
-//        Platform.parse(platformStr)
-//          .flatMap(p => p.parseArch(archStr).map(a => Box(p)(a)))
-//          .toProgram(AppError(""))
-//          .flatMap(box => Build.run(box.p)(box.a))
-
+        // TODO: we do lipo here
         Platform.parse(platformStr)
-          .flatMap(p => p.parseArch(archStr).map(a => (p, a)))
+          .flatMap(p => p.parseArch(archStr))
           .toProgram(AppError(""))
-          // FIXME: workaround for now
-          .flatMap { case (p, a) => Build.run(p)(a.asInstanceOf[p.Architecture]) }
+          .flatMap(Build.run)
 
       case _ => Program.error(AppError(""))
     }
 
     program.eval(Env(".", List())) match {
       case \/-(_) =>
-      case -\/(e) => Helper.exitError(e.message)
+        println(s"${Console.BLUE}Success${Console.RESET}")
+        sys.exit()
+      case -\/(e) =>
+        println(s"${Console.RED}Error: ${e.message}${Console.RESET}")
+        sys.exit(1)
     }
   }
 }

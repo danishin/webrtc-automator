@@ -39,7 +39,7 @@ object Program {
   }
 }
 
-object ProgramFunctions {
+trait ProgramFunctions {
   import Program._
 
   def modifyEnv(f: Env => Env): Program[Unit] = new Program(StateT[Box, Env, Unit](env => \/-(f(env), ())))
