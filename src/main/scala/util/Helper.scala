@@ -3,18 +3,22 @@ package util
 import java.io.File
 
 import fetch.Fetch._
+import util.Program.{AppError, Env}
 
 import scalaz._
 
-case class Env(cwd: String, envVars: List[(String, String)])
-case class Error(message: String) extends AnyVal
-
 trait Helper {
-  type Program = State[Error \/ Env, Unit]
+  import sys.process.Process
+  import java.nio.charset.StandardCharsets
+  import java.nio.file.{Paths, Files}
 
   val PWD = sys.env("PWD")
 
-  private def echo(m: String) = println(s"${Console.CYAN}$m${Console.RESET}")
+  def echo(f: Env => String): Program[Unit] = Program.just { env =>
+    println(s"${Console.CYAN}${f(env)}${Console.RESET}")
+  }
+
+  def echo(m: String): Program[Unit] = Program.only(println(s"${Console.CYAN}$m${Console.RESET}"))
 
   def exitError(m: String) = {
     println(s"${Console.RED}Error: $m${Console.RESET}")
@@ -28,40 +32,25 @@ trait Helper {
     case None => value
   }
 
-  implicit class StringExt(string: String) {
-    import sys.process.Process
-
-    def !(logMessage: String): Program = State { envEither =>
-      val envEither0 = envEither.flatMap { env =>
-        echo(logMessage)
-
-        echo(s"""
-                |Executing...
-                |$string
-                |cwd: ${env.cwd}
-                |envs: ${env.envVars}
+  def shell(command: String): Program[Unit] = for {
+    _ <- echo(env => s"""
+                        |Executing...
+                        |$command
+                        |cwd: ${env.cwd}
+                        |envs: ${env.envVars}
         """.stripMargin)
 
-        Process(string, new File(env.cwd), env.envVars: _*).! match {
-          case 0 => \/-(env)
-          case exit_code => -\/(Error(s"Command '$string' exited with exit code $exit_code"))
-        }
+    _ <- Program { env =>
+      Process(command, new File(env.cwd), env.envVars: _*).! match {
+        case 0 => \/-(())
+        case exit_code => -\/(AppError(s"Command '$command' exited with exit code $exit_code"))
       }
-
-      (envEither0, ())
     }
-  }
+  } yield ()
 
-  def modifyEnv(env: Env => Env): Program = ???
-
-  //  def exec(cwd: String, envs: Envs = List())(f: File => Envs => Unit) = f(new File(cwd))(envs)
-
-  import java.nio.charset.StandardCharsets
-  import java.nio.file.{Paths, Files}
-
-  def copy(from: String, to: String): Unit = Files.copy(Paths.get(from), Paths.get(to))
-  def write(path: String, content: String): Unit = Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8))
-  def emptyDir(path: String): Unit = new File(path).listFiles.foreach(_.delete())
+  def copy(from: String, to: String): Program[Unit] = Program.only(Files.copy(Paths.get(from), Paths.get(to)))
+  def write(path: String, content: String): Program[Unit] = Program.only(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8)))
+  def emptyDir(path: String): Program[Unit] = Program.only(new File(path).listFiles.foreach(_.delete()))
 }
 
 object Helper extends Helper

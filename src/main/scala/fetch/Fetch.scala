@@ -1,19 +1,21 @@
 package fetch
 
-import util.{Env, Helper, Platform, Error}
-
-import scalaz.{\/, State}
+import util.{Program, Helper, Platform}
 
 object Fetch extends Helper {
-  def run(platform: Platform): Program = platform match {
+  import util.ProgramFunctions._
+  def run(platform: Platform): Program[Unit] = platform match {
     case Platform.IOS =>
       for {
         _ <- modifyEnv(_.copy(cwd = "./webrtc"))
-        _ <- "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git webrtc" ! "Clone depot_tools"
+        _ <- echo("Clone depot_tools")
+        _ <- shell("git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git webrtc")
 
         _ <- modifyEnv(_.copy(envVars = List("PATH" -> appendToEnv("PATH", s"$PWD/webrtc/depot_tools"), "GYP_DEFINES" -> "OS=ios")))
-        _ <- "fetch --nohooks webrtc_ios" ! "Start Fetching WebRTC source"
-        _ <- "gclient sync" ! "Update Dependencies"
+        _ <- echo("Start Fetching WebRTC source")
+        _ <- shell("fetch --nohooks webrtc_ios")
+        _ <- echo("Update Dependencies")
+        _ <- shell("gclient sync")
       } yield ()
 
     case Platform.Android => ???
