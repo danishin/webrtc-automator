@@ -7,7 +7,7 @@ sealed trait Platform {
     /**
       * architecture name
       */
-    private[util] def value: String
+    protected def value: String
 
     /**
       * Used as value of Environment Variable `GYP_DEFINES='target_arch=?'`
@@ -23,12 +23,11 @@ sealed trait Platform {
       * Extra `ninja -C` flag (notably, `iossim` from `IOS.Simulator`)
       */
     val extra_ninja_build_flag: Option[String] = None
-//    val out_dir = s"output/tmp/libWebRTC-$value.a"
 
     /**
       * Used as value of Environment Variable `GYP_GENERATOR_FLAGS='output_dir=?'`
       */
-    final val output_dir = s"out_$value"
+    final val output_dir_name = s"out_$value"
 
     /**
       * Name of this architecture's output archive file
@@ -38,26 +37,28 @@ sealed trait Platform {
 
   protected def allArchs: List[Architecture]
 
-  def parseArch(str: String): Option[Architecture] = allArchs.find(_.value == str)
+  object Architecture {
+    def parse(str: String): Option[Architecture] = allArchs.find(_.value == str)
+  }
 }
 
 object Platform {
   case object IOS extends Platform {
     case object Simulator extends Architecture {
-      private[util] val value = "sim"
+      protected val value = "sim"
       val target_arch = "ia32"
       val flavor = "Release-iphonesimulator"
       override val extra_ninja_build_flag = Some("iossim")
     }
 
     case object ARMv7 extends Architecture {
-      private[util] val value = "armv7"
+      protected val value = "armv7"
       val target_arch = "arm"
       val flavor = "Release-iphoneos"
     }
 
     case object ARM64 extends Architecture {
-      private[util] val value = "arm64"
+      protected val value = "arm64"
       val target_arch = "arm64"
       val flavor = "Release-iphoneos"
     }

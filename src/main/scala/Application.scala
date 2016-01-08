@@ -1,6 +1,4 @@
-import build.Build
-import fetch.Fetch
-import update.Update
+import action.{Update, Fetch, Build}
 import util.Program.{Env, AppError}
 import util.{Program, Platform}
 
@@ -13,22 +11,22 @@ object Application {
     val program: Program[Unit] = args match {
       case Array("fetch", platformStr) =>
         Platform.parse(platformStr)
-          .toProgram(AppError(""))
+          .toProgram(AppError.just("Invalid Fetch Parameter"))
           .flatMap(Fetch.run)
 
       case Array("update", platformStr) =>
         Platform.parse(platformStr)
-          .toProgram(AppError(""))
+          .toProgram(AppError.just("Invalid Update Parameter"))
           .flatMap(Update.run)
 
       case Array("build", platformStr, archStr) =>
         // TODO: we do lipo here
         Platform.parse(platformStr)
-          .flatMap(p => p.parseArch(archStr))
-          .toProgram(AppError(""))
+          .flatMap(p => p.Architecture.parse(archStr))
+          .toProgram(AppError.just("Invalid Build Parameter"))
           .flatMap(Build.run)
 
-      case _ => Program.error(AppError(""))
+      case _ => Program.error(AppError.just("Invalid Parameter"))
     }
 
     program.eval(Env(".", List())) match {
@@ -36,7 +34,7 @@ object Application {
         println(s"${Console.BLUE}Success${Console.RESET}")
         sys.exit()
       case -\/(e) =>
-        println(s"${Console.RED}Error: ${e.message}${Console.RESET}")
+        println(s"${Console.RED}Error: ${e.error}${Console.RESET}")
         sys.exit(1)
     }
   }
