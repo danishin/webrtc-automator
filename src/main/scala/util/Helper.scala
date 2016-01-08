@@ -22,9 +22,9 @@ trait Helper extends ProgramFunctions {
 
   // Type-safe tree traversal
   object root extends PathRep(sys.env("PWD")) {
-    object webrtc extends PathRep(root("webrtc")) {
-      object depot_tools extends PathRep(webrtc("depot_tools"))
-      object src extends PathRep(webrtc("src"))
+    object lib extends PathRep(root("lib")) {
+      object depot_tools extends PathRep(lib("depot_tools"))
+      object src extends PathRep(lib("src"))
     }
 
     object output extends PathRep(root("output")) {
@@ -38,33 +38,38 @@ trait Helper extends ProgramFunctions {
 
   def resource_path(name: String): String = getClass.getResource(name).getPath
 
-  def echo(f: Env => String): Program[Unit] = Program(env => println(s"${Console.CYAN}${f(env)}${Console.RESET}"))
+  object Color extends Enumeration {
+    val Cyan = Value(Console.CYAN)
+    val Blue = Value(Console.BLUE)
+  }
+  private def log(message: String, color: Color.Value): Unit = println(s"${color.toString}$message${Console.RESET}")
 
-  def echo(m: String): Program[Unit] = Program(println(s"${Console.CYAN}$m${Console.RESET}"))
+  def echo(m: String): Program[Unit] = Program(log(m, Color.Blue))
 
-  def appendToEnv(key: String, value: String) = sys.env.get(key) match {
-    case Some(v) if v.nonEmpty =>
-      val separator = System.getProperty("path.separator")
-      s"$v$separator$value"
-    case None => value
+  def shell(commandArgs: String*): Program[Unit] = {
+    // NB: `/bin/sh -c` is needed to support shell features like globbing. And it accepts one string so we `mkString`. And we wrap every argument with quote to avoid parameter expansion wrt whitespace.
+    val command = Seq("/bin/sh", "-c") :+ commandArgs/*.map(a => s"'$a'")*/.mkString(" ")
+
+    for {
+      _ <- Program((env: Env) => log(s"""
+                                        |Executing...
+                                        |-------------------------
+                                        |- Command: ${command.mkString(" ")}
+                                        |- CWD: ${env.cwd}
+                                        |- Env Vars: ${env.envVars.mkString("\n", "\n", "")}
+                                        |-------------------------
+        """.stripMargin, Color.Cyan))
+
+      _ <- Program((env: Env) =>
+        Process(command, new File(env.cwd), env.envVars.toList: _*).! match {
+          case 0 => \/-(())
+          case exit_code => throw AppError.just(s"Command '${command.mkString(" ")}' exited with exit code $exit_code")
+        }
+      )
+    } yield ()
   }
 
-  def shell(commands: String*): Program[Unit] = for {
-    _ <- echo(env => s"""
-                        |Executing...
-                        |${commands.mkString(" ")}
-                        |cwd: ${env.cwd}
-                        |envs: ${env.envVars}
-        """.stripMargin)
-
-    _ <- Program.wrap { env =>
-      Process(commands, new File(env.cwd), env.envVars: _*).! match {
-        case 0 => \/-(())
-        case exit_code => -\/(AppError.just(s"Command '${commands.mkString(" ")}' exited with exit code $exit_code"))
-      }
-    }
-  } yield ()
-
+  // TODO: Replace all these with just shell command?
   def copy(from: String, to: String): Program[Unit] = Program(Files.copy(Paths.get(from), Paths.get(to))).map(_ => ())
 
   def write(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8))).map(_ => ())

@@ -17,7 +17,7 @@ class Program[A] private[util] (val boxState: Program.BoxState[A]) {
 }
 
 object Program {
-  case class Env(cwd: String, envVars: List[(String, String)])
+  case class Env(cwd: String, envVars: Map[String, String])
   case class AppError(error: Throwable) extends Throwable
   object AppError {
     def just(message: String): AppError = AppError(new Throwable(message))
@@ -27,7 +27,7 @@ object Program {
   private[util] type Box[S] = E \/ S
   private[util] type BoxState[A] = StateT[Box, Env, A]
 
-  def wrap[A](f: Env => Box[A]): Program[A] = new Program(StateT[Box, Env, A](env => f(env).map((env, _))))
+  private def wrap[A](f: Env => Box[A]): Program[A] = new Program(StateT[Box, Env, A](env => f(env).map((env, _))))
 
   def just[A](a: A): Program[A] = wrap(_ => \/-(a))
 

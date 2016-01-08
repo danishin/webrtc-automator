@@ -11,16 +11,16 @@ object Update extends Helper {
   def run(platform: Platform): Program[Unit] = platform match {
     case Platform.IOS =>
       for {
-        _ <- putEnv(Env(root.webrtc.src, List("PATH" -> appendToEnv("PATH", root.webrtc.depot_tools), "GYP_DEFINES" -> "OS=ios")))
+        _ <- putEnv(Env(root.lib.src, Map("GYP_DEFINES" -> "OS=ios")))
         _ <- echo("Pull the latest WebRTC source")
         _ <- shell("git", "pull")
 
-        _ <- modifyEnv(_.copy(cwd = root.webrtc))
+        _ <- modifyEnv(_.copy(cwd = root.lib))
         _ <- echo("Update the build toolchain and all dependencies")
         _ <- shell("gclient", "sync")
 
         // NB: Exclude `RTCNS*.h` since these are OSX-specific
-        webrtcHeaderFiles = new File(root.webrtc.src("talk/app/webrtc/objc/public")).listFiles.filter(_.getName.matches("""RTC(?!NS).*\.h""")).toList
+        webrtcHeaderFiles = new File(root.lib.src("talk/app/webrtc/objc/public")).listFiles.filter(_.getName.matches("""RTC(?!NS).*\.h""")).toList
 
         _ <- echo("Copy header files")
         _ <- emptyDir(root.output.headers.ios)

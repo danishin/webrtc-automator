@@ -1,6 +1,8 @@
 package util
 
 sealed trait Platform {
+  protected def value: String
+
   sealed trait Architecture {
     val platform: Platform.this.type = Platform.this
 
@@ -20,19 +22,21 @@ sealed trait Platform {
     def flavor: String
 
     /**
-      * Extra `ninja -C` flag (notably, `iossim` from `IOS.Simulator`)
+      * Extra `ninja -C` flag (notably, `iossim` from `IOS.Simulator`) - should be overrided as needed
       */
     val extra_ninja_build_flag: Option[String] = None
 
     /**
       * Used as value of Environment Variable `GYP_GENERATOR_FLAGS='output_dir=?'`
       */
-    final val output_dir_name = s"out_$value"
+    final lazy val output_dir_name = s"out_$value"
 
     /**
       * Name of this architecture's output archive file
       */
-    final val archive_file_name = s"libWebRTC-$value.a"
+    final lazy val archive_file_name = s"libWebRTC-$value.a"
+
+    override def toString = s"${platform.toString} - $value"
   }
 
   protected def allArchs: List[Architecture]
@@ -40,10 +44,14 @@ sealed trait Platform {
   object Architecture {
     def parse(str: String): Option[Architecture] = allArchs.find(_.value == str)
   }
+
+  override def toString = value
 }
 
 object Platform {
   case object IOS extends Platform {
+    protected val value = "ios"
+
     case object Simulator extends Architecture {
       protected val value = "sim"
       val target_arch = "ia32"
@@ -67,12 +75,9 @@ object Platform {
   }
 
   case object Android extends Platform {
+    protected val value = "android"
     protected val allArchs = List()
   }
 
-  def parse(str: String): Option[Platform] = str match {
-    case "ios" => Some(IOS)
-    case "android" => Some(Android)
-    case _ => None
-  }
+  def parse(str: String): Option[Platform] = List(IOS, Android).find(_.value == str)
 }
