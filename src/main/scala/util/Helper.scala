@@ -52,12 +52,12 @@ trait Helper extends ProgramFunctions {
 
     for {
       _ <- Program((env: Env) => log(s"""
-                                        |Executing...
-                                        |-------------------------
-                                        |- Command: ${command.mkString(" ")}
-                                        |- CWD: ${env.cwd}
-                                        |- Env Vars: ${env.envVars.mkString("\n", "\n", "")}
-                                        |-------------------------
+          |Executing...
+          |-------------------------
+          |- Command: ${command.mkString(" ")}
+          |- CWD: ${env.cwd}
+          |- Env Vars: ${env.envVars.mkString("\n", "\n", "")}
+          |-------------------------
         """.stripMargin, Color.Cyan))
 
       _ <- Program((env: Env) =>

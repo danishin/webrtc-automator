@@ -18,9 +18,7 @@ object Build extends Helper {
       _ <- echo("Generate New Build File")
       _ <- shell("python", "webrtc/build/gyp_webrtc")
 
-      // FIXME:
       output_flavor_dir = root.lib.src(s"${arch.output_dir_name}/${arch.flavor}")
-//      output_flavor_dir = s"${arch.output_dir_name}/${arch.flavor}"
       _ <- echo("Start Compiling")
       _ <- shell("ninja", "-C", output_flavor_dir, arch.extra_ninja_build_flag.getOrElse(""), "AppRTCDemo")
 
@@ -30,11 +28,9 @@ object Build extends Helper {
 
       _ <- modifyEnv(_.copy(cwd = "."))
       _ <- echo("Strip Archive File of Unnecessary Symbols and Write to Tmp Folder")
+      _ <- shell("mkdir", "-p", root.tmp)
       // -S: Remove the debugging symbol table entries
       // -x: Remove all local symbols (saving only global symbols)
-
-      // TODO:
-      _ <- shell("mkdir", "-p", root.tmp)
       _ <- shell("strip", "-S", "-x", "-o", root.tmp(arch.archive_file_name), output_flavor_archive_file)
     } yield ()
 
