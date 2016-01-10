@@ -31,11 +31,10 @@ object Application extends Helper {
         _ <- Update.run(p)
       } yield ()
 
-      // TODO: we do lipo here and produce libWebRTC.a without suffix
-      case Array("build", platformStr, archStr) => for {
-        a <- Platform.parse(platformStr).flatMap(_.Architecture.parse(archStr)).toProgram(AppError.just(s"Invalid argument for 'build': $argsString"))
-        _ <- echoInput(s"Build WebRTC archive file for $a")
-        _ <- Build.run(a)
+      case Array("build", platformStr, archsStr) => for {
+        as <- Platform.parse(platformStr).flatMap(_.Architecture.parse(archsStr)).toProgram(AppError.just(s"Invalid argument for 'build': $argsString"))
+        _ <- echoInput(s"Will build WebRTC archive file for ${as.mkString(", ")}")
+        _ <- Build.run(as)
       } yield ()
 
       case _ => Program.error(AppError.just(s"Invalid argument: $argsString"))

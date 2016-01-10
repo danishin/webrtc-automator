@@ -6,7 +6,10 @@
 # TODO
 1. Haven't checked if `fetch` or `update` actually works. Since my internet connection is too slow for it. Will do when back at home.
 
-2. Currently only supports iOS.
+2. Rectify README.md
+
+3. Currently only supports iOS.
+
 
 # Installation
 1. run `bin/fetch_ios.sh`
