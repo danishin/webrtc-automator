@@ -2,6 +2,7 @@ package action
 
 import java.io.File
 
+import action.Update._
 import util.Program.Env
 import util.{Helper, Platform, Program}
 
@@ -19,9 +20,20 @@ object Build extends Helper {
       _ <- shell("lipo", "-output", root.output.`WebRTCiOS.framework`.Versions.A("WebRTCiOS"), "-create", archive_file_paths.mkString(" "))
 
       // NB: Exclude `RTCNS*.h` since these are OSX-specific
-      _ <- shell("find", root.lib.src("talk/app/webrtc/objc/public"), "-name", "'RTC*.h'", "-a", "!", "-name", "'RTCNS*.h'", "-exec", "cp", "{}", root.output.`WebRTCiOS.framework`.Versions.A.Headers, """\;""")
-      // NB: Replace `RTCTypes.h` with custom implementation to allow swift interoperable
+      webrtcHeaderFiles = new File(root.lib.src("talk/app/webrtc/objc/public")).listFiles.filter(_.getName.matches("""RTC(?!NS).*\.h""")).toList
+
+      _ <- webrtcHeaderFiles.traverse_[Program](f => shell("cp", f.getAbsolutePath, root.output.`WebRTCiOS.framework`.Versions.A.Headers(f.getName)))
       _ <- shell("cp", root.resources.`RTCTypes.h`, root.output.`WebRTCiOS.framework`.Versions.A.Headers("RTCTypes.h"))
+      _ <- write(root.output.`WebRTCiOS.framework`.Versions.A.Headers("WebRTCiOS.h"), {
+        List(
+          "#import <UIKit/UIKit.h>",
+          "",
+          webrtcHeaderFiles.map(f => s"""#import "${f.getName}"""").mkString("\n"),
+          "",
+          "FOUNDATION_EXPORT double libjingle_peerconnectionVersionNumber;",
+          "FOUNDATION_EXPORT const unsigned char libjingle_peerconnectionVersionString[];"
+        ).mkString("\n")
+      })
 
       _ <- shell("ln", "-sfh", root.output.`WebRTCiOS.framework`.Versions.A, root.output.`WebRTCiOS.framework`.Versions("Current"))
       _ <- shell("ln", "-sfh", root.output.`WebRTCiOS.framework`.Versions("Current/Headers"), root.output.`WebRTCiOS.framework`("Headers"))

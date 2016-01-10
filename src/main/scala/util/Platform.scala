@@ -22,12 +22,17 @@ sealed trait Platform {
     def target_arch: String
 
     /**
+      * Used as value of Environment Variable `GYP_DEFINES='target_subarch=?'` OVERRIDABLE
+      */
+    val target_subarch: Option[String] = None
+
+    /**
       * Represent the sub-directory of `output_dir` corresponding to the flavor of the underlying Arhictecture.
       */
     def flavor: String
 
     /**
-      * Extra `ninja -C` flag (notably, `iossim` from `IOS.Simulator`) - should be overrided as needed
+      * Extra `ninja -C` flag (notably, `iossim` from `IOS.Simulator`) OVERRIDABLE
       */
     val extra_ninja_build_flag: Option[String] = None
 
@@ -60,12 +65,23 @@ object Platform {
   case object IOS extends Platform {
     protected val value = "ios"
 
-    case object Simulator extends Architecture {
+    sealed trait Sim extends Architecture {
       protected val flavor_value = "sim"
-      protected val value = "sim"
-      val target_arch = "ia32"
       val flavor = "Release-iphonesimulator"
       override val extra_ninja_build_flag = Some("iossim")
+    }
+
+    // 32bit Simulator (ia32 architecture) upto iPhone5
+    case object Sim32 extends Sim {
+      protected val value = "sim32"
+      val target_arch = "ia32"
+    }
+
+    // 64bit Simulator (x86_64 architecture) iPhone5S onwards
+    case object Sim64 extends Sim {
+      protected val value = "sim64"
+      val target_arch = "x64"
+      override val target_subarch = Some("arm64")
     }
 
     sealed trait ARM extends Architecture {
@@ -73,17 +89,19 @@ object Platform {
       val flavor = "Release-iphoneos"
     }
 
+    // 32bit Real Device (armv7 architecture) upto iPhone5
     case object ARMv7 extends ARM {
       protected val value = "armv7"
       val target_arch = "arm"
     }
 
+    // 64bit Real Device (arm64 architecture) iPhone5S onwards
     case object ARM64 extends ARM {
       protected val value = "arm64"
       val target_arch = "arm64"
     }
 
-    protected val allArchs = List(Simulator, ARMv7, ARM64)
+    protected val allArchs = List(Sim32, Sim64, ARMv7, ARM64)
   }
 
   case object Android extends Platform {

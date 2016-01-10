@@ -75,12 +75,7 @@ trait Helper extends ProgramFunctions {
     } yield ()
   }
 
-  // TODO: Replace all these with just shell command?
-  def copy(from: String, to: String): Program[Unit] = Program(Files.copy(Paths.get(from), Paths.get(to))).map(_ => ())
-
   def write(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8))).map(_ => ())
-
-  def emptyDir(path: String): Program[Unit] = Program(new File(path).listFiles.foreach(_.delete()))
 }
 
 object Helper extends Helper
