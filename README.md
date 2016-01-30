@@ -21,6 +21,7 @@
 3. Run `bin/build_ios_arm.sh`
     - Build for ARMv7 & ARM64 iOS Device and spit out a fat binary.
     - (If you want to support 32bit & 64bit simulators instead, run `bin/build_ios_sim.sh`)
+    - (If you want to support both real device and simulator, run `bin/build_ios_all.sh`)
     
 4. Drag `output/WebRTCiOS.framework` to your project.
 

@@ -53,9 +53,13 @@ sealed trait Platform { self =>
   protected def allArchs: List[Architecture]
 
   object Architecture {
-    def parse(str: String): Option[List[Architecture]] = allArchs.filter(_.flavor_value == str) match {
-      case Nil => None
-      case as => Some(as)
+    def parse(str: String): Option[List[Architecture]] = str match {
+      case "all" => Some(allArchs)
+      case _ =>
+        allArchs.filter(_.flavor_value == str) match {
+          case Nil => None
+          case as => Some(as)
+        }
     }
   }
 
