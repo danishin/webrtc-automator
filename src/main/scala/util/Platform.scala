@@ -1,10 +1,11 @@
 package util
 
-sealed trait Platform {
+sealed trait Platform { self =>
   protected def value: String
 
   sealed trait Architecture {
-    val platform: Platform.this.type = Platform.this
+    // NB: Using `def` here is sufficient since inner trait already holds reference to its outer trait and store it in `Platform.this`. Using `val` for this will only create an additional reference to it.
+    def platform: Platform.this.type = self
 
     /**
       * flavor value passed as argument - accordingly will produce single or multiple architecture output file.

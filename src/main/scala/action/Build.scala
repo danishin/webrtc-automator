@@ -52,7 +52,8 @@ object Build extends Helper {
       envVars = Map(
         "GYP_CROSSCOMPILE" -> "1",
         "GYP_GENERATORS" -> "ninja",
-        "GYP_DEFINES" -> s"OS=ios target_arch=${arch.target_arch} build_with_libjingle=1 build_with_chromium=0",
+        // `clang_xcode=1` is needed because chromium project is using old version of clang. Refer to https://bugs.chromium.org/p/webrtc/issues/detail?id=5182
+        "GYP_DEFINES" -> s"OS=ios target_arch=${arch.target_arch} build_with_libjingle=1 build_with_chromium=0 clang_xcode=1",
         "GYP_GENERATOR_FLAGS" -> s"output_dir=${arch.output_dir_name}"
       )))
 
