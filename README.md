@@ -29,7 +29,6 @@
 6. Link these standard libraries
     - libc++.dylib
     - libstdc++.6.dylib
-    - libicucore.dylib
     - libsqlite3.dylib
     - CoreAudio.framework
     - CoreVideo.framework
