@@ -6,6 +6,8 @@ object Fetch extends Helper {
   def run(platform: Platform): Program[Unit] = platform match {
     case Platform.IOS =>
       for {
+        _ <- shell("mkdir", "-p", root.lib)
+
         _ <- modifyEnv(_.copy(cwd = root.lib))
         _ <- echo("Clone depot_tools")
         _ <- shell("git", "clone", "https://chromium.googlesource.com/chromium/tools/depot_tools.git")
