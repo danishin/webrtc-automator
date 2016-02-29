@@ -1,12 +1,9 @@
-package action
-
-import java.io.File
+package action.webrtc
 
 import util.Program.Env
 import util.{Helper, Platform, Program}
 
 object Update extends Helper {
-  import scalaz.Scalaz._
 
   def run(platform: Platform): Program[Unit] = platform match {
     case Platform.IOS =>

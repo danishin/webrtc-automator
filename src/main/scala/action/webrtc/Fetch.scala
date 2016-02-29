@@ -1,4 +1,4 @@
-package action
+package action.webrtc
 
 import util.{Helper, Platform, Program}
 

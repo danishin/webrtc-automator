@@ -1,8 +1,7 @@
-package action
+package action.webrtc
 
 import java.io.File
 
-import action.Update._
 import util.Program.Env
 import util.{Helper, Platform, Program}
 
