@@ -1,4 +1,4 @@
-import action.turn.{Bootstrap, EC2Info}
+import action.turn.{TURNConfigInfo, Bootstrap, EC2Info}
 import action.webrtc.{Platform, Update, Fetch, Build}
 import util.Program.{Env, AppError}
 import util.{Helper, Program}
@@ -45,7 +45,8 @@ object Application extends Helper {
       case "turn" :: xs => xs match {
         case "bootstrap" :: Nil => for {
           json         <- parseConfigJson
-          ec2Info <- (json \ "turn").validate[EC2Info].toProgram
+          ec2Info <- (json \ "turn" \ "ec2").validate[EC2Info].toProgram
+          turnConfigInfo <- (json \ "turn" \ "turn_config").validate[TURNConfigInfo].toProgram
           _ <- echoInput(
             s"""
               |Configuration
@@ -55,9 +56,8 @@ object Application extends Helper {
               |region: ${ec2Info.region}
               |ec2 instance type: ${ec2Info.instance_type}
               |ec2 keypair name: ${ec2Info.key_pair_name}
-              |ec2 keypair private key location: ${ec2Info.key_pair_private_key_location}
             """.stripMargin)
-          _            <- Bootstrap.run(ec2Info)
+          _            <- Bootstrap.run(ec2Info, turnConfigInfo)
         } yield ()
 
         case _ => Program.error(AppError.just(s"Invalid argument for 'turn': $argsString"))

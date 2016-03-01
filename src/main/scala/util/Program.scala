@@ -77,13 +77,6 @@ trait ProgramOps {
       case JsError(e) => Program.error(AppError.just(e.toString()))
     }
   }
-
-  implicit class EitherStringDisjunction[A](a: Either[String, String \/ A]) {
-    def toProgram: Program[A] = a match {
-      case Left(e) => Program.error(AppError.just(e))
-      case Right(d) => Program.wrap(_ => d.bimap(AppError.just, identity))
-    }
-  }
 }
 
 object ProgramOps extends ProgramOps

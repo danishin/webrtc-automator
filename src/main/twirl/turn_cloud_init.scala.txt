@@ -1,0 +1,70 @@
+@(i: action.turn.TURNConfigInfo)
+#!/usr/bin/env bash
+
+set -e
+
+CERTIFICATE_PATH=/usr/local/etc/turn_server_cert.pem
+PRIVATE_KEY_PATH=/usr/local/etc/turn_server_pkey.pem
+LOG_FILE_PATH=/var/log/turnserver/turn
+
+# Get Public IP (http://stackoverflow.com/questions/7525702/how-to-find-the-ip-address-of-an-amazon-ec2-instance-on-reboot)
+PUBLIC_IP="$(curl http://instance-data/latest/meta-data/public-ipv4)"
+
+# Install coturn
+apt-get install coturn -y
+
+# Set up turnserver.conf
+#####################################################
+cat > /etc/turnserver.conf << EOF
+external-ip=$PUBLIC_IP
+
+verbose
+
+# Use fingerprints in the TURN messages
+fingerprint
+
+# long-term credential mechanism
+lt-cred-mech
+
+# SQLite database file name
+db=/usr/local/var/db/turndb
+
+# Default realm to be used for the users when no explicit origin/realm relationship was found in the database.
+realm=@i.turn_db_realm
+
+# Log file path
+log-file=$LOG_FILE_PATH
+
+# Certificate file
+cert=$CERTIFICATE_PATH
+
+# Private key file
+pkey=$PRIVATE_KEY_PATH
+
+# Disallow peers on the loopback addresses. This is an extra security measure.
+no-loopback-peers
+
+# Disallow peers on well-known broadcast addresses (224.0.0.0 and above). This is an extra security measure.
+no-multicast-peers
+
+# Mobility with ICE (MICE) specs support.
+mobility
+EOF
+#####################################################
+
+# Add long-term TURN user
+turnadmin --add --user=@i.turn_username --password=@i.turn_password --realm=@i.turn_db_realm
+
+# Add Admin User
+turnadmin --add-admin --user=@i.admin_username--password=@i.admin_password
+
+# Configure Private Key and Certificate for TLS/DTLS
+openssl req \
+    -new \
+    -newkey rsa:4096 \
+    -days 365 \
+    -nodes \
+    -x509 \
+    -subj "/C=@{i.ssl_cert_subject.country}/ST=@{i.ssl_cert_subject.state}/L=@{i.ssl_cert_subject.location}/O=@{i.ssl_cert_subject.organization}/CN=@{i.ssl_cert_subject.common_name}" \
+    -keyout $PRIVATE_KEY_PATH \
+    -out $CERTIFICATE_PATH

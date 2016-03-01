@@ -1,7 +1,5 @@
-name := "webrtc_automator"
-
+lazy val `webrtc-automator` = (project in file(".")).enablePlugins(SbtTwirl)
 version := "1.0"
-
 scalaVersion := "2.11.7"
 
 libraryDependencies ++= {
@@ -13,8 +11,6 @@ libraryDependencies ++= {
     "com.amazonaws" % "aws-java-sdk-ec2" % awsVersion,
 
     "com.typesafe.play" %% "play-json" % "2.5.0-M2",
-    "com.decodified" %% "scala-ssh" % "0.7.0",
-    "ch.qos.logback" % "logback-classic" % "1.1.2",
     "org.scalaz" %% "scalaz-core" % scalazVersion
   )
 }

@@ -3,20 +3,13 @@ package action.turn
 import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials, PropertiesCredentials}
 import com.amazonaws.services.ec2.AmazonEC2Client
 import com.amazonaws.services.ec2.model._
-import com.decodified.scalassh.{PublicKeyLogin, HostConfig, SSH}
+import com.amazonaws.util.Base64
 import play.api.libs.json._
 import _root_.util.{Program, Helper}
 
 import scala.util.{Failure, Success, Try}
 
-case class EC2Info(
-                    aws_access_key: String,
-                    aws_secret_key: String,
-                    region: String,
-                    instance_type: InstanceType,
-                    key_pair_name: String,
-                    key_pair_private_key_location: String
-                  )
+case class EC2Info(aws_access_key: String, aws_secret_key: String, region: String, instance_type: InstanceType, key_pair_name: String)
 object EC2Info {
   implicit val instanceTypeReads = Reads {
     case JsString(s) => Try(InstanceType.fromValue(s)) match {
@@ -29,8 +22,16 @@ object EC2Info {
   implicit val reads = Json.reads[EC2Info]
 }
 
+case class TURNConfigInfo(turn_username: String, turn_password: String, turn_db_realm: String, admin_username: String, admin_password: String, ssl_cert_subject: TURNConfigInfo.SSLCertSubject)
+object TURNConfigInfo {
+  case class SSLCertSubject(country: String, state: String, location: String, organization: String, common_name: String)
+
+  implicit val sslCertSubjectReads = Json.reads[SSLCertSubject]
+  implicit val reads = Json.reads[TURNConfigInfo]
+}
+
 object Bootstrap extends Helper {
-  def run(info: EC2Info): Program[Unit] = for {
+  def run(info: EC2Info, turnConfigInfo: TURNConfigInfo): Program[Unit] = for {
     _      <- echo("Create EC2 Client")
     client <- createEC2Client(info)
 
@@ -38,13 +39,29 @@ object Bootstrap extends Helper {
     sgId   <- createEC2SecurityGroup(client)
 
     _      <- echo("Create EC2 Instance")
-    pendingInstance <- createEC2Instance(client, sgId, info)
+    pendingInstance <- createEC2Instance(client, sgId, info, turnConfigInfo)
 
     _      <- echo("Wait Until EC2 Instance is Running")
     runningInstance <- waitUntilEC2IsRunning(client, pendingInstance)
 
-    _ <- echo("Set Up EC2 Instance as TURN server")
-    _ <- setupEC2Instance(runningInstance, info)
+    _ <- echo(
+      s"""
+        |Please allow about 2-3 minutes until TURN server is done setting up.
+        |You can check log file for setup at /var/log/cloud-init.log in ec2 instance via ssh.
+        |
+        |SSH Command: ssh -i ~/.ssh/${info.key_pair_name}.pem ubuntu@${runningInstance.getPublicIpAddress}
+        |
+        |Created EC2 Instance:
+        |
+        |InstanceId: ${runningInstance.getInstanceId}
+        |InstanceType: ${runningInstance.getInstanceType}
+        |Placement: ${runningInstance.getPlacement}
+        |ImageId: ${runningInstance.getImageId}
+        |PrivateDNS: ${runningInstance.getPrivateDnsName}
+        |PrivateIP: ${runningInstance.getPrivateIpAddress}
+        |PublicDNS: ${runningInstance.getPublicDnsName}
+        |PublicIP: ${runningInstance.getPublicIpAddress}
+      """.stripMargin)
   } yield ()
 
   private def createEC2Client(info: EC2Info): Program[AmazonEC2Client] = Program {
@@ -92,7 +109,7 @@ object Bootstrap extends Helper {
     }
   }
 
-  private def createEC2Instance(client: AmazonEC2Client, securityGroupId: String, info: EC2Info): Program[Instance] = Program {
+  private def createEC2Instance(client: AmazonEC2Client, securityGroupId: String, info: EC2Info, turnConfigInfo: TURNConfigInfo): Program[Instance] = Program {
     val request = new RunInstancesRequest()
       .withInstanceType(info.instance_type)
       .withImageId("ami-00f4c76e") // Ubuntu 15.10
@@ -100,6 +117,7 @@ object Bootstrap extends Helper {
       .withMaxCount(1)
       .withSecurityGroupIds(securityGroupId)
       .withKeyName(info.key_pair_name)
+      .withUserData(Base64.encodeAsString(txt.turn_cloud_init(turnConfigInfo).body.getBytes(): _*))
 
     val ec2 = client.runInstances(request).getReservation.getInstances.get(0)
 
@@ -141,13 +159,5 @@ object Bootstrap extends Helper {
     }
 
     go(1)
-  }
-
-  private def setupEC2Instance(instance: Instance, info: EC2Info): Program[Unit] = {
-    val config = HostConfig(PublicKeyLogin("ubuntu", info.key_pair_private_key_location), connectTimeout = Some(5000))
-
-    SSH(instance.getPublicIpAddress, config) { client => for {
-      _ <- client.shell("sudo apt-get install coturn")
-    } yield () }.toProgram
   }
 }
