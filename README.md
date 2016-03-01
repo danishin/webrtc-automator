@@ -66,7 +66,39 @@
     - Update src directory to r31000
 
 ## Bootstrap TURN server
-1. Run `bin/turn/bootstrap.sh`
+1. Create `config.json` at root directory with the following format:
+```
+{
+  "turn": {
+    "ec2": {
+      "aws_access_key": "",
+      "aws_secret_key": "",
+      "region": "ap-northeast-1",
+
+      "instance_type": "t2.micro",
+      "key_pair_name": ""
+    },
+
+    "turn_config": {
+      "turn_username": "",
+      "turn_password": "",
+      "turn_db_realm": "",
+      "admin_username": "",
+      "admin_password": "",
+
+      "ssl_cert_subject": {
+        "country": "", // C
+        "state": "", // ST
+        "location": "", // L
+        "organization": "", // O
+        "common_name": "" // CN
+      }
+    }
+  }
+}
+```
+
+2. Run `bin/turn/bootstrap.sh`
 
 ### Tips
 1. HTTPS management interface can be accessed from the same ports as the main TURN listener.
