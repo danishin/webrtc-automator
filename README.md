@@ -8,8 +8,13 @@
 
 2. Currently only supports iOS.
 
+# Features
+1. Build `WebRTCiOS.framework`.
 
-# Installation
+2. Bootstrap TURN server ([coturn](https://github.com/coturn/coturn)) running on EC2 instance.
+
+# Usage
+## Build WebRTCiOS.framework
 1. Run `bin/webrtc/fetch_ios.sh`
     - Fetch the entire library of webrtc as well as chromium and other dependencies. ~12GB
     
@@ -46,11 +51,10 @@
     
 7. Build your project!
 
-# Tips
+### Tips
 Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
 
-# Notes
-## Commands 
+### Commands 
 1. `gclient sync`
     - Update files from SCM according to current configuration, for modules which have changed since last update or sync.
     - Force update even for unchanged modules
@@ -61,5 +65,5 @@ Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of fil
 3. `gclient sync --revision src@31000`
     - Update src directory to r31000
 
-
-
+## Bootstrap TURN server
+1. Run `bin/turn/bootstrap.sh`

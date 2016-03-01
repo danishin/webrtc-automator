@@ -163,4 +163,6 @@ object Bootstrap extends Helper {
 
     go(1)
   }
+
+  // TODO: Check if turn server is running and then do tail on log file via ssh?
 }
