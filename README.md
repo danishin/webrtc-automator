@@ -52,7 +52,7 @@
 7. Build your project!
 
 ### Tips
-Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
+1. Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
 
 ### Commands 
 1. `gclient sync`
@@ -67,3 +67,14 @@ Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of fil
 
 ## Bootstrap TURN server
 1. Run `bin/turn/bootstrap.sh`
+
+### Tips
+1. HTTPS management interface can be accessed from the same ports as the main TURN listener.
+    - i.e https://<PUBLIC_IP>:3478
+
+### Commands
+1. `sqlite3 /var/lib/turn/turndb`
+    - Access User DB
+    
+2. `telnet 127.0.0.1 5766`
+    - Access telnet management CLI for currently running `turnserver`
