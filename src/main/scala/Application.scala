@@ -6,8 +6,6 @@ import util.{Helper, Program}
 import scalaz.{-\/, \/-}
 
 object Application extends Helper {
-  import util.ProgramOps._
-
   def main(args: Array[String]) {
     val argsString = s"[${args.mkString(", ")}]"
 
@@ -47,16 +45,6 @@ object Application extends Helper {
           json         <- parseConfigJson
           ec2Info <- (json \ "turn" \ "ec2").validate[EC2Info].toProgram
           turnConfigInfo <- (json \ "turn" \ "turn_config").validate[TURNConfigInfo].toProgram
-          _ <- echoInput(
-            s"""
-              |Configuration
-              |--------------
-              |aws_access_key: ${ec2Info.aws_access_key}
-              |aws_secret_key: ${ec2Info.aws_secret_key}
-              |region: ${ec2Info.region}
-              |ec2 instance type: ${ec2Info.instance_type}
-              |ec2 keypair name: ${ec2Info.key_pair_name}
-            """.stripMargin)
           _            <- Bootstrap.run(ec2Info, turnConfigInfo)
         } yield ()
 

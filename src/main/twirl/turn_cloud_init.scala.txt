@@ -1,7 +1,7 @@
 @(i: action.turn.TURNConfigInfo)
 #!/usr/bin/env bash
 
-set -e
+set -xe
 
 CERTIFICATE_PATH=/usr/local/etc/turn_server_cert.pem
 PRIVATE_KEY_PATH=/usr/local/etc/turn_server_pkey.pem
@@ -11,6 +11,7 @@ LOG_FILE_PATH=/var/log/turnserver/turn
 PUBLIC_IP="$(curl http://instance-data/latest/meta-data/public-ipv4)"
 
 # Install coturn
+apt-get update
 apt-get install coturn -y
 
 # Set up turnserver.conf
@@ -27,7 +28,7 @@ fingerprint
 lt-cred-mech
 
 # SQLite database file name
-db=/usr/local/var/db/turndb
+userdb=/var/lib/turn/turndb
 
 # Default realm to be used for the users when no explicit origin/realm relationship was found in the database.
 realm=@i.turn_db_realm
@@ -56,7 +57,7 @@ EOF
 turnadmin --add --user=@i.turn_username --password=@i.turn_password --realm=@i.turn_db_realm
 
 # Add Admin User
-turnadmin --add-admin --user=@i.admin_username--password=@i.admin_password
+turnadmin --add-admin --user=@i.admin_username --password=@i.admin_password
 
 # Configure Private Key and Certificate for TLS/DTLS
 openssl req \
@@ -68,3 +69,9 @@ openssl req \
     -subj "/C=@{i.ssl_cert_subject.country}/ST=@{i.ssl_cert_subject.state}/L=@{i.ssl_cert_subject.location}/O=@{i.ssl_cert_subject.organization}/CN=@{i.ssl_cert_subject.common_name}" \
     -keyout $PRIVATE_KEY_PATH \
     -out $CERTIFICATE_PATH
+
+# Create Log Files Directory
+mkdir -p $LOG_FILE_PATH
+
+# Run turnserver
+turnserver -o

@@ -110,14 +110,16 @@ object Bootstrap extends Helper {
   }
 
   private def createEC2Instance(client: AmazonEC2Client, securityGroupId: String, info: EC2Info, turnConfigInfo: TURNConfigInfo): Program[Instance] = Program {
+    val cloudInitScript = txt.turn_cloud_init(turnConfigInfo).body
+
     val request = new RunInstancesRequest()
       .withInstanceType(info.instance_type)
-      .withImageId("ami-00f4c76e") // Ubuntu 15.10
+      .withImageId("ami-a21529cc") // Ubuntu 15.10
       .withMinCount(1)
       .withMaxCount(1)
       .withSecurityGroupIds(securityGroupId)
       .withKeyName(info.key_pair_name)
-      .withUserData(Base64.encodeAsString(txt.turn_cloud_init(turnConfigInfo).body.getBytes(): _*))
+      .withUserData(Base64.encodeAsString(cloudInitScript.getBytes(): _*))
 
     val ec2 = client.runInstances(request).getReservation.getInstances.get(0)
 
@@ -128,6 +130,7 @@ object Bootstrap extends Helper {
     client.createTags(tagRequest)
 
     debug("EC2 Instance Created", ec2)
+    debug("Cloud Init Script", cloudInitScript)
 
     ec2
   }
