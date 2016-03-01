@@ -1,6 +1,5 @@
-import action.turn.{EC2InstanceInfo, EC2ClientInfo, Bootstrap}
+import action.turn.{Bootstrap, EC2Info}
 import action.webrtc.{Platform, Update, Fetch, Build}
-import play.api.libs.json.Json
 import util.Program.{Env, AppError}
 import util.{Helper, Program}
 
@@ -46,19 +45,19 @@ object Application extends Helper {
       case "turn" :: xs => xs match {
         case "bootstrap" :: Nil => for {
           json         <- parseConfigJson
-          clientInfo   <- (json \ "turn").validate[EC2ClientInfo].toProgram
-          instanceInfo <- (json \ "turn").validate[EC2InstanceInfo].toProgram
+          ec2Info <- (json \ "turn").validate[EC2Info].toProgram
           _ <- echoInput(
             s"""
               |Configuration
               |--------------
-              |aws_access_key: ${clientInfo.aws_access_key}
-              |aws_secret_key: ${clientInfo.aws_secret_key}
-              |region: ${clientInfo.region}
-              |ec2 instance type: ${instanceInfo.instance_type}
-              |ec2 keypair name: ${instanceInfo.key_pair_name}
+              |aws_access_key: ${ec2Info.aws_access_key}
+              |aws_secret_key: ${ec2Info.aws_secret_key}
+              |region: ${ec2Info.region}
+              |ec2 instance type: ${ec2Info.instance_type}
+              |ec2 keypair name: ${ec2Info.key_pair_name}
+              |ec2 keypair private key location: ${ec2Info.key_pair_private_key_location}
             """.stripMargin)
-          _            <- Bootstrap.run(clientInfo, instanceInfo)
+          _            <- Bootstrap.run(ec2Info)
         } yield ()
 
         case _ => Program.error(AppError.just(s"Invalid argument for 'turn': $argsString"))

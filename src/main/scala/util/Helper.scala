@@ -2,6 +2,7 @@ package util
 
 import java.io.File
 
+import com.decodified.scalassh.SshClient
 import play.api.libs.json.{JsLookupResult, JsValue, Json, Reads}
 import util.Program.{AppError, Env}
 
@@ -21,21 +22,18 @@ trait Helper extends ProgramFunctions with ProgramOps {
   }
 
   object Color extends Enumeration {
+    val Red = Value(Console.RED)
     val Cyan = Value(Console.CYAN)
     val Blue = Value(Console.BLUE)
   }
   private def log(message: String, color: Color.Value): Unit = println(s"${color.toString}$message${Console.RESET}")
 
   def echo(m: String): Program[Unit] = Program(log(m, Color.Blue))
-  def debug(m: String, vs: Any*): Unit = log(
-    s"""
-      |$m
-      |${vs.mkString("------------------------\n- ", "\n- ", "\n------------------------")}
-    """.stripMargin, Color.Cyan)
+  def debug(m: String, vs: Any*): Unit = log(m + (if (vs.nonEmpty) vs.mkString("\n------------------------\n- ", "\n- ", "\n------------------------") else ""), Color.Cyan)
 
   def shell(commandArgs: String*): Program[Unit] = {
     // NB: `/bin/sh -c` is needed to support shell features like globbing. And it accepts one string so we `mkString`. And we wrap every argument with quote to avoid parameter expansion wrt whitespace.
-    val command = Seq("/bin/sh", "-c") :+ commandArgs/*.map(a => s"'$a'")*/.mkString(" ")
+    val command = Seq("/bin/sh", "-c") :+ commandArgs.mkString(" ")
 
     for {
       _ <- Program((env: Env) => log(s"""
@@ -60,6 +58,9 @@ trait Helper extends ProgramFunctions with ProgramOps {
 
   def parseConfigJson: Program[JsValue] = Program(Json.parse(Files.readAllBytes(Paths.get("config.json"))))
 
+  implicit class SshClientExt(sshClient: SshClient) {
+    def shell(command: String): String \/ Unit = \/.fromEither(sshClient.exec(command)).map(_ => ())
+  }
 }
 
 object Helper extends Helper

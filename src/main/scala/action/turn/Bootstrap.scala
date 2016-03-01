@@ -1,22 +1,23 @@
 package action.turn
 
-import java.nio.file.{Paths, Files}
-
 import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials, PropertiesCredentials}
 import com.amazonaws.services.ec2.AmazonEC2Client
 import com.amazonaws.services.ec2.model._
-import com.amazonaws.util.Base64
-import com.decodified.scalassh.SSH
+import com.decodified.scalassh.{PublicKeyLogin, HostConfig, SSH}
 import play.api.libs.json._
 import _root_.util.{Program, Helper}
 
 import scala.util.{Failure, Success, Try}
 
-case class EC2ClientInfo(aws_access_key: String, aws_secret_key: String, region: String)
-object EC2ClientInfo { implicit val reads = Json.reads[EC2ClientInfo] }
-
-case class EC2InstanceInfo(instance_type: InstanceType, key_pair_name: String)
-object EC2InstanceInfo {
+case class EC2Info(
+                    aws_access_key: String,
+                    aws_secret_key: String,
+                    region: String,
+                    instance_type: InstanceType,
+                    key_pair_name: String,
+                    key_pair_private_key_location: String
+                  )
+object EC2Info {
   implicit val instanceTypeReads = Reads {
     case JsString(s) => Try(InstanceType.fromValue(s)) match {
       case Success(a) => JsSuccess(a)
@@ -25,28 +26,28 @@ object EC2InstanceInfo {
     case _ => JsError()
   }
 
-  implicit val reads = Json.reads[EC2InstanceInfo]
+  implicit val reads = Json.reads[EC2Info]
 }
 
 object Bootstrap extends Helper {
-  def run(clientInfo: EC2ClientInfo, instanceInfo: EC2InstanceInfo): Program[Unit] = for {
+  def run(info: EC2Info): Program[Unit] = for {
     _      <- echo("Create EC2 Client")
-    client <- createEC2Client(clientInfo)
+    client <- createEC2Client(info)
 
     _      <- echo("Create EC2 Security Group")
     sgId   <- createEC2SecurityGroup(client)
 
     _      <- echo("Create EC2 Instance")
-    pendingInstance <- createEC2Instance(client, sgId, instanceInfo)
+    pendingInstance <- createEC2Instance(client, sgId, info)
 
     _      <- echo("Wait Until EC2 Instance is Running")
     runningInstance <- waitUntilEC2IsRunning(client, pendingInstance)
 
     _ <- echo("Set Up EC2 Instance as TURN server")
-//    _ <- setupEC2Instance()
+    _ <- setupEC2Instance(runningInstance, info)
   } yield ()
 
-  private def createEC2Client(info: EC2ClientInfo): Program[AmazonEC2Client] = Program {
+  private def createEC2Client(info: EC2Info): Program[AmazonEC2Client] = Program {
     val client = new AmazonEC2Client(new BasicAWSCredentials(info.aws_access_key, info.aws_secret_key))
     client.setEndpoint(s"ec2.${info.region}.amazonaws.com")
     client
@@ -91,7 +92,7 @@ object Bootstrap extends Helper {
     }
   }
 
-  private def createEC2Instance(client: AmazonEC2Client, securityGroupId: String, info: EC2InstanceInfo): Program[Instance] = Program {
+  private def createEC2Instance(client: AmazonEC2Client, securityGroupId: String, info: EC2Info): Program[Instance] = Program {
     val request = new RunInstancesRequest()
       .withInstanceType(info.instance_type)
       .withImageId("ami-00f4c76e") // Ubuntu 15.10
@@ -142,10 +143,11 @@ object Bootstrap extends Helper {
     go(1)
   }
 
-//  private def setupEC2Instance() = {
-//    // TODO: START FROM HERE!!!!!!!!!!!!!!!!!!!!!!!!!
-//    SSH("") { client =>
-//      client.exec("sudo apt-get install coturn")
-//    }
-//  }
+  private def setupEC2Instance(instance: Instance, info: EC2Info): Program[Unit] = {
+    val config = HostConfig(PublicKeyLogin("ubuntu", info.key_pair_private_key_location), connectTimeout = Some(5000))
+
+    SSH(instance.getPublicIpAddress, config) { client => for {
+      _ <- client.shell("sudo apt-get install coturn")
+    } yield () }.toProgram
+  }
 }

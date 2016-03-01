@@ -2,18 +2,15 @@
   <!-- Appenders -->
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%coloredLevel[%logger{50}]: %message%n%xException{10}</pattern>
+      <pattern>[%logger{50}]: %message%n%xException{10}</pattern>
     </encoder>
   </appender>
 
-  <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="STDOUT" />
-  </appender>
-
   <!-- Loggers -->
+  <logger name="net.schmizz.sshj" level="DEBUG" />
   <logger name="com.decodified.scala-ssh" level="DEBUG" />
 
   <root level="WARN">
-    <appender-ref ref="ASYNCSTDOUT" />
+    <appender-ref ref="STDOUT" />
   </root>
 </configuration>

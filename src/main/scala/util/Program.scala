@@ -29,7 +29,7 @@ object Program {
   private[util] type Box[S] = E \/ S
   private[util] type BoxState[A] = StateT[Box, Env, A]
 
-  private def wrap[A](f: Env => Box[A]): Program[A] = new Program(StateT[Box, Env, A](env => f(env).map((env, _))))
+  private[util] def wrap[A](f: Env => Box[A]): Program[A] = new Program(StateT[Box, Env, A](env => f(env).map((env, _))))
 
   def just[A](a: A): Program[A] = wrap(_ => \/-(a))
 
@@ -75,6 +75,13 @@ trait ProgramOps {
     def toProgram: Program[A] = jsResult match {
       case JsSuccess(a, _) => Program.just(a)
       case JsError(e) => Program.error(AppError.just(e.toString()))
+    }
+  }
+
+  implicit class EitherStringDisjunction[A](a: Either[String, String \/ A]) {
+    def toProgram: Program[A] = a match {
+      case Left(e) => Program.error(AppError.just(e))
+      case Right(d) => Program.wrap(_ => d.bimap(AppError.just, identity))
     }
   }
 }
