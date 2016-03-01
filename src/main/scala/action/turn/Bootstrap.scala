@@ -49,16 +49,16 @@ object Bootstrap extends Helper {
         |Please allow about 2-3 minutes until TURN server is done setting up.
         |You can check log file for setup at /var/log/cloud-init.log in ec2 instance via ssh.
         |
-        |SSH Command: ssh -i ~/.ssh/${info.key_pair_name}.pem ubuntu@${runningInstance.getPublicIpAddress}
+        |SSH Command: `ssh -i ~/.ssh/${info.key_pair_name}.pem ubuntu@${runningInstance.getPublicIpAddress}`
+        |
+        |To check if TURN server is ready, run `curl ${runningInstance.getPublicIpAddress}:3478`
+        |and see if it returns 200.
         |
         |Created EC2 Instance:
         |
         |InstanceId: ${runningInstance.getInstanceId}
         |InstanceType: ${runningInstance.getInstanceType}
         |Placement: ${runningInstance.getPlacement}
-        |ImageId: ${runningInstance.getImageId}
-        |PrivateDNS: ${runningInstance.getPrivateDnsName}
-        |PrivateIP: ${runningInstance.getPrivateIpAddress}
         |PublicDNS: ${runningInstance.getPublicDnsName}
         |PublicIP: ${runningInstance.getPublicIpAddress}
       """.stripMargin)
@@ -110,11 +110,11 @@ object Bootstrap extends Helper {
   }
 
   private def createEC2Instance(client: AmazonEC2Client, securityGroupId: String, info: EC2Info, turnConfigInfo: TURNConfigInfo): Program[Instance] = Program {
-    val cloudInitScript = txt.turn_cloud_init(turnConfigInfo).body
+    val cloudInitScript = txt.turn_cloud_init(turnConfigInfo).body.trim
 
     val request = new RunInstancesRequest()
       .withInstanceType(info.instance_type)
-      .withImageId("ami-a21529cc") // Ubuntu 15.10
+      .withImageId("ami-00f4c76e") // Ubuntu 15.10
       .withMinCount(1)
       .withMaxCount(1)
       .withSecurityGroupIds(securityGroupId)

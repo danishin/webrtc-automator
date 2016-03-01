@@ -12,7 +12,7 @@ PUBLIC_IP="$(curl http://instance-data/latest/meta-data/public-ipv4)"
 
 # Install coturn
 apt-get update
-apt-get install coturn -y
+apt-get install -y coturn
 
 # Set up turnserver.conf
 #####################################################
