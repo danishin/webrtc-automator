@@ -3,7 +3,7 @@ package action.webrtc
 import java.io.File
 
 import util.Program.Env
-import util.{Helper, Platform, Program}
+import util.{Helper, Program}
 
 object Build extends Helper {
   import scalaz.Scalaz._

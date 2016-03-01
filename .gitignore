@@ -11,3 +11,5 @@ lib/
 tmp/
 .idea/
 .DS_Store
+
+config.json

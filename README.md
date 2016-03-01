@@ -10,18 +10,18 @@
 
 
 # Installation
-1. Run `bin/fetch_ios.sh`
+1. Run `bin/webrtc/fetch_ios.sh`
     - Fetch the entire library of webrtc as well as chromium and other dependencies. ~12GB
     
-2. Run `bin/update_ios.sh`
+2. Run `bin/webrtc/update_ios.sh`
     - Make sure all of library dependencies are fetched properly
     - Copy all objc header files and create `output/ios/headers/libjingle-umbrella.h` file that you can later copy into your project
     - Copy all third-party library files to `output/ios/third-party/`
 
-3. Run `bin/build_ios_arm.sh`
+3. Run `bin/webrtc/build_ios_arm.sh`
     - Build for ARMv7 & ARM64 iOS Device and spit out a fat binary.
-    - (If you want to support 32bit & 64bit simulators instead, run `bin/build_ios_sim.sh`)
-    - (If you want to support both real device and simulator, run `bin/build_ios_all.sh`)
+    - (If you want to support 32bit & 64bit simulators instead, run `bin/webrtc/build_ios_sim.sh`)
+    - (If you want to support both real device and simulator, run `bin/webrtc/build_ios_all.sh`)
     
 4. Drag `output/WebRTCiOS.framework` to your project.
 

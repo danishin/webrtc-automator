@@ -1,5 +1,7 @@
 package util
 
+import play.api.libs.json.{JsError, JsSuccess, JsResult}
+
 import scalaz._
 
 class Program[A] private[util] (val boxState: Program.BoxState[A]) {
@@ -67,6 +69,13 @@ trait ProgramOps {
 
   implicit class OptionExt[A](option: Option[A]) {
     def toProgram(e: E): Program[A] = option.fold[Program[A]](Program.error(e))(Program.just)
+  }
+
+  implicit class JsResultExt[A](jsResult: JsResult[A]) {
+    def toProgram: Program[A] = jsResult match {
+      case JsSuccess(a, _) => Program.just(a)
+      case JsError(e) => Program.error(AppError.just(e.toString()))
+    }
   }
 }
 

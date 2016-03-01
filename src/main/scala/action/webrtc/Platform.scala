@@ -1,4 +1,4 @@
-package util
+package action.webrtc
 
 sealed trait Platform { self =>
   protected def value: String

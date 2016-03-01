@@ -1,6 +1,6 @@
 package action.webrtc
 
-import util.{Helper, Platform, Program}
+import util.{Helper, Program}
 
 object Fetch extends Helper {
   def run(platform: Platform): Program[Unit] = platform match {

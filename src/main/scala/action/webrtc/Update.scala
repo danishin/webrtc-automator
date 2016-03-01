@@ -1,7 +1,7 @@
 package action.webrtc
 
 import util.Program.Env
-import util.{Helper, Platform, Program}
+import util.{Helper, Program}
 
 object Update extends Helper {
 
