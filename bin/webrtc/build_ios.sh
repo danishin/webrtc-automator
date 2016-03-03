@@ -4,4 +4,6 @@
 # NB: This is because environment variables are passed to the subprocess that is generated **as a result of** given command not to the current process (obviously).
 export PATH=$PATH:$PWD/lib/depot_tools
 
-sbt "run webrtc build ios $1"
+# defaults to DEBUG if unset
+# http://stackoverflow.com/questions/9332802/how-to-write-a-bash-script-that-takes-optional-input-arguments
+sbt "run webrtc build ios $1 ${2:-DEBUG}"

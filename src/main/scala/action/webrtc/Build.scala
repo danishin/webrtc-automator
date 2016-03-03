@@ -3,12 +3,21 @@ package action.webrtc
 import util.Program.Env
 import util.{Helper, Program}
 
+import scala.util.Try
+
+object BuildType extends Enumeration {
+  val Debug = Value("DEBUG")
+  val Release = Value("RELEASE")
+
+  def from(str: String): Option[BuildType.Value] = Try(withName(str)).toOption
+}
+
 object Build extends Helper {
   private val IOS_DEPLOYMENT_TARGET = 8.0
 
-  def run(arch: Platform#Architecture): Program[Unit] = arch.platform match {
+  def run(arch: Platform#Architecture, buildType: BuildType.Value): Program[Unit] = arch.platform match {
     case Platform.IOS => for {
-      _ <- echo(s"Build archive file for $arch with deploy target of $IOS_DEPLOYMENT_TARGET")
+      _ <- echo(s"Build archive file for $arch with deploy target of $IOS_DEPLOYMENT_TARGET $buildType")
 
       _ <- putEnv(Env(
         cwd = root.lib.src,
@@ -30,7 +39,7 @@ object Build extends Helper {
       _ <- echo("Generate New Build File")
       _ <- shell("python", "webrtc/build/gyp_webrtc")
 
-      output_flavor_dir = s"$output_dir/${arch.flavor}"
+      output_flavor_dir = s"$output_dir/$buildType-${arch.target}"
       _ <- echo("Start Compiling")
       _ <- shell("ninja", "-C", output_flavor_dir, arch.extra_ninja_build_flag.getOrElse(""), "AppRTCDemo")
 

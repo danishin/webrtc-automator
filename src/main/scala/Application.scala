@@ -9,6 +9,8 @@ object Application extends Helper {
   import scalaz.std.list.listInstance
   import listInstance.traverseSyntax._
 
+  case class Config(foo: Int)
+
   def main(args: Array[String]) {
     val argsString = s"[${args.mkString(", ")}]"
 
@@ -34,10 +36,11 @@ object Application extends Helper {
           _ <- Update.run(p)
         } yield ()
 
-        case "build" :: platformStr :: archsStr :: Nil => for {
+        case "build" :: platformStr :: archsStr :: buildTypeStr :: Nil => for {
+          bt <- BuildType.from(buildTypeStr).toProgram(AppError.just(s"Invalid Build Type: $argsString"))
           as <- Platform.parse(platformStr).flatMap(_.Architecture.parse(archsStr)).toProgram(AppError.just(s"Invalid argument for 'build': $argsString"))
           _ <- echoInput(s"Will build WebRTC archive file for ${as.mkString(", ")}")
-          _ <- as.traverse(Build.run)
+          _ <- as.traverse_[Program](a => Build.run(a, bt))
           _ <- echoInput(s"Assemble built WebRTC archive files")
           _ <- Assemble.run(as)
         } yield ()

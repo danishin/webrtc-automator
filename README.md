@@ -19,10 +19,8 @@
 2. Run `bin/webrtc/update_ios.sh`
     - Sync webrtc library to the latest release branch
 
-3. Run `bin/webrtc/build_ios.sh arm`
-    - Build for ARMv7 & ARM64 iOS Device with **default deployment target of 8.0** and spit out a fat binary.
-    - (If you want to support 32bit & 64bit simulators instead, run `bin/webrtc/build_ios.sh sim`)
-    - (If you want to support both real device and simulator, run `bin/webrtc/build_ios.sh all`)
+3. Run `bin/webrtc/build_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64) (DEBUG | RELEASE)?`
+    - Build for passed architectures with **default deployment target of 8.0** and spit out a fat binary.
     
 4. Drag `output/WebRTCiOS.framework` to your project.
 
@@ -50,10 +48,12 @@
 #### Tips
 1. Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
 
+2. Install `ideviceinstaller` and Run `ideviceinstaller -i src/out_arm64/Release-iphoneos/AppRTCDemo.app` for example, to install `AppRTCDemo` on device.
+
 ## Assemble WebRTCiOS.framework from pre-built archive files
 1. Make sure `output/archive` contains pre-built archive files for intended architectures.
 
-2. Run `bin/webrtc/assemble_ios.sh {arm | all | sim}`
+2. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
 
 ## Bootstrap TURN server
 1. Create `config.json` at root directory with the following format:
