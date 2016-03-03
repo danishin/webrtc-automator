@@ -20,7 +20,7 @@
     - Sync webrtc library to the latest release branch
 
 3. Run `bin/webrtc/build_ios.sh arm`
-    - Build for ARMv7 & ARM64 iOS Device and spit out a fat binary.
+    - Build for ARMv7 & ARM64 iOS Device with **default deployment target of 8.0** and spit out a fat binary.
     - (If you want to support 32bit & 64bit simulators instead, run `bin/webrtc/build_ios.sh sim`)
     - (If you want to support both real device and simulator, run `bin/webrtc/build_ios.sh all`)
     
@@ -108,4 +108,3 @@
     
 2. `telnet 127.0.0.1 5766`
     - Access telnet management CLI for currently running `turnserver`
-    

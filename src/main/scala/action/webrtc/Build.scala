@@ -1,22 +1,26 @@
 package action.webrtc
 
-import java.io.File
-
 import util.Program.Env
 import util.{Helper, Program}
 
 object Build extends Helper {
+  private val IOS_DEPLOYMENT_TARGET = 8.0
+
   def run(arch: Platform#Architecture): Program[Unit] = arch.platform match {
     case Platform.IOS => for {
-      _ <- echo(s"Build archive file for $arch")
+      _ <- echo(s"Build archive file for $arch with deploy target of $IOS_DEPLOYMENT_TARGET")
 
       _ <- putEnv(Env(
         cwd = root.lib.src,
         envVars = Map(
           "GYP_CROSSCOMPILE" -> "1",
           "GYP_GENERATORS" -> "ninja",
-          // `clang_xcode=1` is needed because chromium project is using old version of clang. Refer to https://bugs.chromium.org/p/webrtc/issues/detail?id=5182
-          "GYP_DEFINES" -> s"OS=ios target_arch=${arch.target_arch} build_with_libjingle=1 build_with_chromium=0 clang_xcode=1",
+          /**
+            * - `clang_xcode=1` is needed because chromium project is using old version of clang. Refer to https://bugs.chromium.org/p/webrtc/issues/detail?id=5182
+            * - `ios_deployment_target=8.0` is needed because chromium project sets it as 9.0 by default (or whatever is the latest) and if your ios project is less than 9.0, it will generate annoying warnings.
+            *   Refer to https://bugs.chromium.org/p/webrtc/issues/detail?id=5563#c6 and https://code.google.com/p/chromium/codesearch#chromium/src/build/common.gypi&l=1687
+            */
+          "GYP_DEFINES" -> s"OS=ios target_arch=${arch.target_arch} build_with_libjingle=1 build_with_chromium=0 clang_xcode=1 ios_deployment_target=$IOS_DEPLOYMENT_TARGET",
           "GYP_GENERATOR_FLAGS" -> s"output_dir=${arch.output_dir_name}"
         )))
 
