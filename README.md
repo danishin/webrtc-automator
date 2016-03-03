@@ -53,7 +53,7 @@
 ## Assemble WebRTCiOS.framework from pre-built archive files
 1. Make sure `output/archive` contains pre-built archive files for intended architectures.
 
-2. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
+2. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64`
 
 ## Bootstrap TURN server
 1. Create `config.json` at root directory with the following format:

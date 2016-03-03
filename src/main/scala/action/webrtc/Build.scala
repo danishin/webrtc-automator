@@ -3,13 +3,15 @@ package action.webrtc
 import util.Program.Env
 import util.{Helper, Program}
 
-import scala.util.Try
-
 object BuildType extends Enumeration {
-  val Debug = Value("DEBUG")
-  val Release = Value("RELEASE")
+  val Debug = Value("Debug")
+  val Release = Value("Release")
 
-  def from(str: String): Option[BuildType.Value] = Try(withName(str)).toOption
+  def from(str: String): Option[BuildType.Value] = str match {
+    case "DEBUG" => Some(Debug)
+    case "RELEASE" => Some(Release)
+    case _ => None
+  }
 }
 
 object Build extends Helper {

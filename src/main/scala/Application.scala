@@ -9,7 +9,7 @@ object Application extends Helper {
   import scalaz.std.list.listInstance
   import listInstance.traverseSyntax._
 
-  case class Config(foo: Int)
+  case class BuildConfig(platform: Platform, archs: List[Platform#Architecture], buildType: BuildType.Value, DeploymentTargetVersion: Double)
 
   def main(args: Array[String]) {
     val argsString = s"[${args.mkString(", ")}]"
