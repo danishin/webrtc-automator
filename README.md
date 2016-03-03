@@ -76,7 +76,8 @@
       "region": "ap-northeast-1",
 
       "instance_type": "t2.micro",
-      "key_pair_name": ""
+      "key_pair_name": "",
+      "key_pair_private_key_location": ""
     },
 
     "turn_config": {
@@ -97,16 +98,23 @@
   }
 }
 ```
-
 2. Run `bin/turn/bootstrap.sh`
+
+3. Wait Until EC2 instance is created and TURN server is bootstrapped. Once everything is set up, program will automatically switch to tailing remote log file of TURN server process.
 
 ### Tips
 1. HTTPS management interface can be accessed from the same ports as the main TURN listener.
     - i.e https://<PUBLIC_IP>:3478
+    
+### Commands in Host
+1. ssh -i PRIVATE_KEY_LOCATION ubuntu@PUBLIC_IP 'ls -t -c1 /var/log/turnserver/turn* | head -1 | xargs tail -F -n 200'
+    - Tail remote log file of TURN process
+    - Replace PRIVATE_KEY_LOCATION and PUBLIC_IP for use.
 
-### Commands
+### Commands in EC2 instance
 1. `sqlite3 /var/lib/turn/turndb`
     - Access User DB
     
 2. `telnet 127.0.0.1 5766`
     - Access telnet management CLI for currently running `turnserver`
+    

@@ -11,6 +11,7 @@ libraryDependencies ++= {
     "com.amazonaws" % "aws-java-sdk-ec2" % awsVersion,
 
     "com.typesafe.play" %% "play-json" % "2.5.0-M2",
-    "org.scalaz" %% "scalaz-core" % scalazVersion
+    "org.scalaz" %% "scalaz-core" % scalazVersion,
+    "org.scalaj" %% "scalaj-http" % "2.2.1"
   )
 }

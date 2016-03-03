@@ -3,6 +3,7 @@ import action.webrtc.{Platform, Update, Fetch, Build}
 import util.Program.{Env, AppError}
 import util.{Helper, Program}
 
+import scalaj.http.Http
 import scalaz.{-\/, \/-}
 
 object Application extends Helper {

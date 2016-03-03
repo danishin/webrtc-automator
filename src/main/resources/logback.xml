@@ -7,9 +7,6 @@
   </appender>
 
   <!-- Loggers -->
-  <logger name="net.schmizz.sshj" level="DEBUG" />
-  <logger name="com.decodified.scala-ssh" level="DEBUG" />
-
   <root level="WARN">
     <appender-ref ref="STDOUT" />
   </root>

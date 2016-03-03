@@ -8,8 +8,9 @@ import play.api.libs.json._
 import _root_.util.{Program, Helper}
 
 import scala.util.{Failure, Success, Try}
+import scalaj.http.Http
 
-case class EC2Info(aws_access_key: String, aws_secret_key: String, region: String, instance_type: InstanceType, key_pair_name: String)
+case class EC2Info(aws_access_key: String, aws_secret_key: String, region: String, instance_type: InstanceType, key_pair_name: String, key_pair_private_key_location: String)
 object EC2Info {
   implicit val instanceTypeReads = Reads {
     case JsString(s) => Try(InstanceType.fromValue(s)) match {
@@ -49,19 +50,22 @@ object Bootstrap extends Helper {
         |Please allow about 2-3 minutes until TURN server is done setting up.
         |You can check log file for setup at /var/log/cloud-init.log in ec2 instance via ssh.
         |
-        |SSH Command: `ssh -i ~/.ssh/${info.key_pair_name}.pem ubuntu@${runningInstance.getPublicIpAddress}`
-        |
-        |To check if TURN server is ready, run `curl ${runningInstance.getPublicIpAddress}:3478`
-        |and see if it returns 200.
+        |SSH Command: `ssh -i ${info.key_pair_private_key_location} ubuntu@${runningInstance.getPublicIpAddress}`
         |
         |Created EC2 Instance:
         |
         |InstanceId: ${runningInstance.getInstanceId}
         |InstanceType: ${runningInstance.getInstanceType}
-        |Placement: ${runningInstance.getPlacement}
+        |Region: ${runningInstance.getPlacement.getAvailabilityZone}
         |PublicDNS: ${runningInstance.getPublicDnsName}
         |PublicIP: ${runningInstance.getPublicIpAddress}
       """.stripMargin)
+
+      _ <- echo("Wait Until TURN Server is Running")
+      _ <- waitUntilTURNServerIsRunning(runningInstance)
+
+      _ <- echo("Tail remote log file")
+      _ <- shell("ssh", "-o", "StrictHostKeyChecking=no", "-i", info.key_pair_private_key_location, s"ubuntu@${runningInstance.getPublicIpAddress}", "'ls -t -c1 /var/log/turnserver/turn* | head -1 | xargs tail -F -n 200'")
   } yield ()
 
   private def createEC2Client(info: EC2Info): Program[AmazonEC2Client] = Program {
@@ -143,14 +147,16 @@ object Bootstrap extends Helper {
         .getInstances
         .get(0)
 
+    @annotation.tailrec
     def go(i: Int): Instance = {
       if (i > 60) throw new RuntimeException(s"EC2 instance is still not up after $i tries. Terminating...")
+
+      debug(s"Trying EC2 instance for $i times")
 
       val instance = checkInstance()
 
       instance.getState.getCode.toInt match {
         case 0 =>
-          debug(s"Trying EC2 instance for $i times")
           Thread.sleep(2000)
           go(i + 1)
         case 16 =>
@@ -164,5 +170,22 @@ object Bootstrap extends Helper {
     go(1)
   }
 
-  // TODO: Check if turn server is running and then do tail on log file via ssh?
+  private def waitUntilTURNServerIsRunning(instance: Instance) = Program {
+    @annotation.tailrec
+    def go(i: Int): Unit = {
+      if (i > 100) throw new RuntimeException(s"TURN server still not up after $i tries. Terminating...")
+
+      debug(s"Trying TURN server for $i times")
+
+      Try(Http(s"http://${instance.getPublicIpAddress}:3478").timeout(2000, 2000).asString) match {
+        case Success(r) if r.is2xx =>
+          debug("TURN Server is running")
+        case _ =>
+          Thread.sleep(2000)
+          go(i + 1)
+      }
+    }
+
+    go(1)
+  }
 }
