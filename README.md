@@ -4,9 +4,7 @@
 2. SBT
 
 # TODO
-1. Haven't checked if `fetch` or `update` actually works. Since my internet connection is too slow for it. Will do when back at home.
-
-2. Currently only supports iOS.
+1. Haven't checked if `fetch` actually works. Since my internet connection is too slow for it. Will do when back at home.
 
 # Features
 1. Build `WebRTCiOS.framework`.
@@ -58,17 +56,6 @@
 
 ### Tips
 1. Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
-
-### Commands 
-1. `gclient sync`
-    - Update files from SCM according to current configuration, for modules which have changed since last update or sync.
-    - Force update even for unchanged modules
-
-2. `gclient sync --force`
-    - Update files from SCM according to current configuration, for all modules (useful for recovering files deleted from local copy)
-
-3. `gclient sync --revision src@31000`
-    - Update src directory to r31000
 
 ## Bootstrap TURN server
 1. Create `config.json` at root directory with the following format:
