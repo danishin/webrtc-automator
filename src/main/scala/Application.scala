@@ -1,12 +1,14 @@
 import action.turn.{TURNConfigInfo, Bootstrap, EC2Info}
-import action.webrtc.{Platform, Update, Fetch, Build}
+import action.webrtc._
 import util.Program.{Env, AppError}
 import util.{Helper, Program}
 
-import scalaj.http.Http
 import scalaz.{-\/, \/-}
 
 object Application extends Helper {
+  import scalaz.std.list.listInstance
+  import listInstance.traverseSyntax._
+
   def main(args: Array[String]) {
     val argsString = s"[${args.mkString(", ")}]"
 
@@ -35,7 +37,15 @@ object Application extends Helper {
         case "build" :: platformStr :: archsStr :: Nil => for {
           as <- Platform.parse(platformStr).flatMap(_.Architecture.parse(archsStr)).toProgram(AppError.just(s"Invalid argument for 'build': $argsString"))
           _ <- echoInput(s"Will build WebRTC archive file for ${as.mkString(", ")}")
-          _ <- Build.run(as)
+          _ <- as.traverse(Build.run)
+          _ <- echoInput(s"Assemble built WebRTC archive files")
+          _ <- Assemble.run(as)
+        } yield ()
+
+        case "assemble" :: platformStr :: archsStr :: Nil => for {
+          as <- Platform.parse(platformStr).flatMap(_.Architecture.parse(archsStr)).toProgram(AppError.just(s"Invalid argument for 'assemble': $argsString"))
+          _ <- echoInput(s"Assemble WebRTC archive files for ${as.mkString(", ")}")
+          _ <- Assemble.run(as)
         } yield ()
 
         case _ => Program.error(AppError.just(s"Invalid argument for 'webrtc': $argsString"))

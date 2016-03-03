@@ -47,6 +47,11 @@ sealed trait Platform { self =>
       */
     final lazy val archive_file_name = s"libWebRTC-${platform.value}-$value.a"
 
+    /**
+      * Full path of archive file
+      */
+    def archive_file_path = root.output.archive(archive_file_name)
+
     override def toString = s"${platform.toString} - $value"
   }
 

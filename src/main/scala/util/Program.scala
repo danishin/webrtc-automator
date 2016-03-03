@@ -35,6 +35,10 @@ object Program {
 
   def error[A](e: E): Program[A] = wrap(_ => -\/(e))
 
+  def guard(predicate: => Boolean)(errorMessage: String): Program[Unit] =
+    if (predicate) Program.just(())
+    else Program.error(AppError.just(errorMessage))
+
   def apply[A](a: => A): Program[A] = apply(_ => a)
 
   def apply[A](f: Env => A): Program[A] = wrap(env => TryRun(f(env), AppError.apply))

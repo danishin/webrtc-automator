@@ -23,10 +23,10 @@
     - Copy all objc header files and create `output/ios/headers/libjingle-umbrella.h` file that you can later copy into your project
     - Copy all third-party library files to `output/ios/third-party/`
 
-3. Run `bin/webrtc/build_ios_arm.sh`
+3. Run `bin/webrtc/build_ios.sh arm`
     - Build for ARMv7 & ARM64 iOS Device and spit out a fat binary.
-    - (If you want to support 32bit & 64bit simulators instead, run `bin/webrtc/build_ios_sim.sh`)
-    - (If you want to support both real device and simulator, run `bin/webrtc/build_ios_all.sh`)
+    - (If you want to support 32bit & 64bit simulators instead, run `bin/webrtc/build_ios.sh sim`)
+    - (If you want to support both real device and simulator, run `bin/webrtc/build_ios.sh all`)
     
 4. Drag `output/WebRTCiOS.framework` to your project.
 
@@ -50,6 +50,11 @@
     - QuartzCore.framework
     
 7. Build your project!
+
+## Assemble WebRTCiOS.framework from pre-built archive files
+1. Make sure `output/archive` contains pre-built archive files for intended architectures.
+
+2. Run `bin/webrtc/assemble_ios.sh {arm | all | sim}`
 
 ### Tips
 1. Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
