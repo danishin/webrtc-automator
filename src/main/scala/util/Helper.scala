@@ -1,6 +1,7 @@
 package util
 
 import java.io.File
+import java.nio.file.StandardOpenOption
 
 import play.api.libs.json.{JsLookupResult, JsValue, Json, Reads}
 import util.Program.{AppError, Env}
@@ -54,6 +55,8 @@ trait Helper extends ProgramFunctions with ProgramOps {
   }
 
   def write(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8))).map(_ => ())
+
+  def append(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND)).map(_ => ())
 
   def parseConfigJson: Program[JsValue] = Program(Json.parse(Files.readAllBytes(Paths.get("config.json"))))
 }
