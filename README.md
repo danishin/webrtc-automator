@@ -17,9 +17,7 @@
     - Fetch the entire library of webrtc as well as chromium and other dependencies. ~12GB
     
 2. Run `bin/webrtc/update_ios.sh`
-    - Make sure all of library dependencies are fetched properly
-    - Copy all objc header files and create `output/ios/headers/libjingle-umbrella.h` file that you can later copy into your project
-    - Copy all third-party library files to `output/ios/third-party/`
+    - Sync webrtc library to the latest release branch
 
 3. Run `bin/webrtc/build_ios.sh arm`
     - Build for ARMv7 & ARM64 iOS Device and spit out a fat binary.
