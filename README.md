@@ -20,13 +20,16 @@
     - Sync webrtc library to the latest release branch
 
 3. Run `bin/webrtc/build_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64) (DEBUG | RELEASE)?`
-    - Build for passed architectures with **default deployment target of 8.0** and spit out a fat binary.
+    - Build for passed architectures with **default deployment target of 8.0 & RELEASE** and (over)write an archive file for each architecture in `output/archive/`.
     
-4. Drag `output/WebRTCiOS.framework` to your project.
+4. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
+    - Assemble all archives built in previous `build` phase and (over)write `WebRTCiOS.framework` in `output/`
+    
+5. Drag `output/WebRTCiOS.framework` to your project.
 
-5. (If you use Swift) Add `#import <WebRTCiOS/WebRTCiOS.h>` to your bridging header.
+6. (If you use Swift) Add `#import <WebRTCiOS/WebRTCiOS.h>` to your bridging header.
     
-6. Link these standard libraries
+7. Link these standard libraries
     - libc++.dylib
     - libstdc++.6.dylib
     - libsqlite3.dylib
@@ -43,7 +46,7 @@
     - OpenGLES.framework
     - QuartzCore.framework
     
-7. Build your project!
+8. Build your project!
 
 #### Tips
 1. Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.

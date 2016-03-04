@@ -41,8 +41,6 @@ object Application extends Helper {
           as <- Platform.parse(platformStr).flatMap(_.Architecture.parse(archsStr)).toProgram(AppError.just(s"Invalid argument for 'build': $argsString"))
           _ <- echoInput(s"Will build WebRTC archive file for ${as.mkString(", ")}")
           _ <- as.traverse_[Program](a => Build.run(a, bt))
-          _ <- echoInput(s"Assemble built WebRTC archive files")
-          _ <- Assemble.run(as)
         } yield ()
 
         case "assemble" :: platformStr :: archsStr :: Nil => for {

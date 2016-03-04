@@ -9,26 +9,31 @@ sealed trait Platform { self =>
 
     /**
       * Represent the sub-directory of `output_dir` corresponding to the target of the underlying Architecture. (i.e. Simulator or Device)
+      * eg. iphonesimulator | iphoneos
       */
     def target: String
 
     /**
       * target value passed as argument - accordingly will produce single or multiple architecture output file.
+      * eg. arm | sim
       */
     protected def target_value: String
 
     /**
       * Used as value of Environment Variable `GYP_DEFINES='target_arch=?'`
+      * eg. ia32 | x64 | arm | arm64
       */
     def target_arch: String
 
     /**
       * architecture name
+      * eg. sim32 | sim64 | armv7 | arm64
       */
     protected def target_arch_value: String
 
     /**
       * Used as value of Environment Variable `GYP_DEFINES='target_subarch=?'` OVERRIDABLE
+      * eg. arm64
       */
     val target_subarch: Option[String] = None
 
@@ -40,19 +45,19 @@ sealed trait Platform { self =>
     /**
       * Used as value of Environment Variable `GYP_GENERATOR_FLAGS='output_dir=?'`
       */
-    final lazy val output_dir_name = s"out_$value"
+    final lazy val output_dir_name = s"out_$target_arch_value"
 
     /**
       * Name of this architecture's output archive file
       */
-    final lazy val archive_file_name = s"libWebRTC-${platform.value}-$value.a"
+    final lazy val archive_file_name = s"libWebRTC-${platform.value}-$target_arch_value.a"
 
     /**
       * Full path of archive file
       */
     def archive_file_path = root.output.archive(archive_file_name)
 
-    override def toString = s"${platform.toString} - $value"
+    override def toString = s"$platform - $target_arch_value"
   }
 
   protected def allArchs: List[Architecture]
