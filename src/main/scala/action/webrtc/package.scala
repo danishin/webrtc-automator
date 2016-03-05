@@ -7,7 +7,11 @@ package object webrtc extends Helper {
   object root extends PathRep(sys.env("PWD")) {
     object lib extends PathRep(root("lib")) {
       object depot_tools extends PathRep(lib("depot_tools"))
-      object src extends PathRep(lib("src"))
+      object src extends PathRep(lib("src")) {
+        object webrtc extends PathRep(src("webrtc")) {
+          object `webrtc_examples.gyp` extends PathRep(webrtc("webrtc_examples.gyp"))
+        }
+      }
       object `.gclient` extends PathRep(lib(".gclient"))
     }
 

@@ -24,16 +24,10 @@ object Application extends Helper {
 
     val program: Program[Unit] = args.toList match {
       case "webrtc" :: xs => xs match {
-        case "fetch" :: platformStr :: Nil => for {
-          p <- Platform.parse(platformStr).toProgram(AppError.just(s"Invalid argument for 'fetch': $argsString"))
-          _ <- echoInput(s"Fetch Entire WebRTC library for $p")
-          _ <- Fetch.run(p)
-        } yield ()
-
-        case "update" :: platformStr :: Nil => for {
-          p <- Platform.parse(platformStr).toProgram(AppError.just(s"Invalid argument for 'update': $argsString"))
-          _ <- echoInput(s"Update WebRTC library for $p")
-          _ <- Update.run(p)
+        case "sync" :: platformStr :: Nil => for {
+          p <- Platform.parse(platformStr).toProgram(AppError.just(s"Invalid argument for 'sync': $argsString"))
+          _ <- echoInput(s"Sync WebRTC library for $p")
+          _ <- Sync.run(p)
         } yield ()
 
         case "build" :: platformStr :: archsStr :: buildTypeStr :: Nil => for {

@@ -13,23 +13,21 @@
 
 # Usage
 ## Build WebRTCiOS.framework
-1. Run `bin/webrtc/fetch_ios.sh`
-    - Fetch the entire library of webrtc as well as chromium and other dependencies. ~12GB
-    
-2. Run `bin/webrtc/update_ios.sh`
+1. Run `bin/webrtc/sync_ios.sh`
+    - Fetch the entire library of webrtc as well as chromium and other dependencies. ~12GB **or**
     - Sync webrtc library to the latest release branch
 
-3. Run `bin/webrtc/build_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64) (DEBUG | RELEASE)?`
+2. Run `bin/webrtc/build_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64) (DEBUG | RELEASE)?`
     - Build for passed architectures with **default deployment target of 8.0 & RELEASE** and (over)write an archive file for each architecture in `output/archive/`.
     
-4. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
+3. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
     - Assemble all archives built in previous `build` phase and (over)write `WebRTCiOS.framework` in `output/`
     
-5. Drag `output/WebRTCiOS.framework` to your project.
+4. Drag `output/WebRTCiOS.framework` to your project.
 
-6. (If you use Swift) Add `#import <WebRTCiOS/WebRTCiOS.h>` to your bridging header.
+5. (If you use Swift) Add `#import <WebRTCiOS/WebRTCiOS.h>` to your bridging header.
     
-7. Link these standard libraries
+6. Link these standard libraries
     - libc++.dylib
     - libstdc++.6.dylib
     - libsqlite3.dylib
@@ -46,12 +44,10 @@
     - OpenGLES.framework
     - QuartzCore.framework
     
-8. Build your project!
+7. Build your project!
 
 #### Tips
 1. Run `while true; do du -sm src/; sleep 3; done` to keep track of the size of files being downloaded.
-
-2. Install `ideviceinstaller` and Run `ideviceinstaller -i src/out_arm64/Release-iphoneos/AppRTCDemo.app` for example, to install `AppRTCDemo` on device.
 
 ## Assemble WebRTCiOS.framework from pre-built archive files
 1. Make sure `output/archive` contains pre-built archive files for intended architectures.

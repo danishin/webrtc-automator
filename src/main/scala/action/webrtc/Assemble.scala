@@ -8,7 +8,7 @@ import util.{Program, Helper}
 object Assemble extends Helper {
   def run(archs: List[Platform#Architecture]): Program[Unit] = archs.head.platform match {
     case Platform.IOS => for {
-      _ <- Program.guard(archs.forall(a => Files.exists(Paths.get(a.archive_file_path))))("Archive files don't exist. Please run build before running assemble")
+      _ <- Program.guard(archs.forall(a => file.exists(a.archive_file_path)))("Archive files don't exist. Please run build before running assemble")
 
       _ <- echo("Create 'WebRTCiOS.framework'")
       _ <- shell("rm", "-rf", root.output.`WebRTCiOS.framework`)
@@ -20,10 +20,10 @@ object Assemble extends Helper {
         * - Exclude `RTCNS*.h` since these are OSX-specific
         * - Exclude `.*\+Private.h` since these are private APIs.
         */
-      webrtcHeaderFiles = new File(root.lib.src("webrtc/api/objc")).listFiles.filter(_.getName.matches("""RTC(?!NS).*(?<!\+Private)\.h""")).toList
+      webrtcHeaderFiles = new File(root.lib.src("talk/app/webrtc/objc/public")).listFiles.filter(_.getName.matches("""RTC(?!NS).*(?<!\+Private)\.h""")).toList
 
       _ <- shell("cp", webrtcHeaderFiles.map(_.getAbsolutePath).mkString(" "), root.output.`WebRTCiOS.framework`.Versions.A.Headers)
-      _ <- write(root.output.`WebRTCiOS.framework`.Versions.A.Headers("WebRTCiOS.h"), {
+      _ <- file.write(root.output.`WebRTCiOS.framework`.Versions.A.Headers("WebRTCiOS.h"), {
         List(
           "#import <UIKit/UIKit.h>",
           "",

@@ -54,9 +54,15 @@ trait Helper extends ProgramFunctions with ProgramOps {
     } yield ()
   }
 
-  def write(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8))).map(_ => ())
+  object file {
+    def readAsLines(path: String): Program[Vector[String]] = Program(io.Source.fromFile(new File(path)).getLines().toVector)
 
-  def append(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND)).map(_ => ())
+    def write(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8))).map(_ => ())
+
+    def append(path: String, content: String): Program[Unit] = Program(Files.write(Paths.get(path), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND)).map(_ => ())
+
+    def exists(path: String): Boolean = Files.exists(Paths.get(path))
+  }
 
   def parseConfigJson: Program[JsValue] = Program(Json.parse(Files.readAllBytes(Paths.get("config.json"))))
 }
