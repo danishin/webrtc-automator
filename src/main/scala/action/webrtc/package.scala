@@ -21,9 +21,5 @@ package object webrtc extends Helper {
         }
       }
     }
-
-    object resources extends PathRep(root("resources")) {
-      object `RTCTypes.h` extends PathRep(resources("RTCTypes.h"))
-    }
   }
 }

@@ -6,8 +6,6 @@ import java.nio.file.{Paths, Files}
 import util.{Program, Helper}
 
 object Assemble extends Helper {
-  import scalaz.Scalaz._
-
   def run(archs: List[Platform#Architecture]): Program[Unit] = archs.head.platform match {
     case Platform.IOS => for {
       _ <- Program.guard(archs.forall(a => Files.exists(Paths.get(a.archive_file_path))))("Archive files don't exist. Please run build before running assemble")
@@ -18,11 +16,13 @@ object Assemble extends Helper {
 
       _ <- shell("lipo", "-output", root.output.`WebRTCiOS.framework`.Versions.A("WebRTCiOS"), "-create", archs.map(_.archive_file_path).mkString(" "))
 
-      // NB: Exclude `RTCNS*.h` since these are OSX-specific
-      webrtcHeaderFiles = new File(root.lib.src("talk/app/webrtc/objc/public")).listFiles.filter(_.getName.matches("""RTC(?!NS).*\.h""")).toList
+      /**
+        * - Exclude `RTCNS*.h` since these are OSX-specific
+        * - Exclude `.*\+Private.h` since these are private APIs.
+        */
+      webrtcHeaderFiles = new File(root.lib.src("webrtc/api/objc")).listFiles.filter(_.getName.matches("""RTC(?!NS).*(?<!\+Private)\.h""")).toList
 
-      _ <- webrtcHeaderFiles.traverse_[Program](f => shell("cp", f.getAbsolutePath, root.output.`WebRTCiOS.framework`.Versions.A.Headers(f.getName)))
-      _ <- shell("cp", root.resources.`RTCTypes.h`, root.output.`WebRTCiOS.framework`.Versions.A.Headers("RTCTypes.h"))
+      _ <- shell("cp", webrtcHeaderFiles.map(_.getAbsolutePath).mkString(" "), root.output.`WebRTCiOS.framework`.Versions.A.Headers)
       _ <- write(root.output.`WebRTCiOS.framework`.Versions.A.Headers("WebRTCiOS.h"), {
         List(
           "#import <UIKit/UIKit.h>",
