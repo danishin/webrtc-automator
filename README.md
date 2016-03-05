@@ -101,9 +101,8 @@
     - i.e https://<PUBLIC_IP>:3478
     
 #### Commands in Host
-1. `ssh -i PRIVATE_KEY_LOCATION ubuntu@PUBLIC_IP 'ls -t -c1 /var/log/turnserver/turn* | head -1 | xargs tail -F -n 200'`
-    - Tail remote log file of TURN process
-    - Replace PRIVATE_KEY_LOCATION and PUBLIC_IP for use.
+1. `bash bin/turn/tail_remote_log.sh PRIVATE_KEY_LOCATION PUBLIC_IP`
+    - Tail remote log file of TURN server
 
 #### Commands in EC2 instance
 1. `sqlite3 /var/lib/turn/turndb`
