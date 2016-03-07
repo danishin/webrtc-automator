@@ -23,6 +23,7 @@ object Assemble extends Helper {
       webrtcHeaderFiles = new File(root.lib.src("talk/app/webrtc/objc/public")).listFiles.filter(_.getName.matches("""RTC(?!NS).*(?<!\+Private)\.h""")).toList
 
       _ <- shell("cp", webrtcHeaderFiles.map(_.getAbsolutePath).mkString(" "), root.output.`WebRTCiOS.framework`.Versions.A.Headers)
+      _ <- shell("cp", root.resources.`RTCTypes.h`, root.output.`WebRTCiOS.framework`.Versions.A.Headers("RTCTypes.h"))
       _ <- file.write(root.output.`WebRTCiOS.framework`.Versions.A.Headers("WebRTCiOS.h"), {
         List(
           "#import <UIKit/UIKit.h>",
