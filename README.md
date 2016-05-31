@@ -4,9 +4,7 @@
 2. SBT
 
 # TODO
-1. Haven't checked if `fetch` actually works. Since my internet connection is too slow for it. Will do when back at home.
-
-2. Check again what standard libraries are acutally needed
+1. Check again what standard libraries are acutally needed
 
 # Features
 1. Build `WebRTCiOS.framework`.
