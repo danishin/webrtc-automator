@@ -4,9 +4,7 @@
 2. SBT
 
 # TODO
-1. Haven't checked if `fetch` actually works. Since my internet connection is too slow for it. Will do when back at home.
-
-2. Check again what standard libraries are acutally needed
+1. Check again what standard libraries are actually needed
 
 # Features
 1. Build `WebRTCiOS.framework`.
@@ -15,14 +13,14 @@
 
 # Usage
 ## Build WebRTCiOS.framework
-1. Run `bin/webrtc/sync_ios.sh`
+1. Run `bash bin/webrtc/sync_ios.sh`
     - Fetch the entire library of webrtc as well as chromium and other dependencies. ~12GB **or**
     - Sync webrtc library to the latest release branch
 
-2. Run `bin/webrtc/build_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64) (DEBUG | RELEASE)?`
+2. Run `bash bin/webrtc/build_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64) (DEBUG | RELEASE)?`
     - Build for passed architectures with **default deployment target of 8.0 & RELEASE** and (over)write an archive file for each architecture in `output/archive/`.
     
-3. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
+3. Run `bash bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64)`
     - Assemble all archives built in previous `build` phase and (over)write `WebRTCiOS.framework` in `output/`
     
 4. Drag `output/WebRTCiOS.framework` to your project.
@@ -54,7 +52,7 @@
 ## Assemble WebRTCiOS.framework from pre-built archive files
 1. Make sure `output/archive` contains pre-built archive files for intended architectures.
 
-2. Run `bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64`
+2. Run `bash bin/webrtc/assemble_ios.sh (all | arm | armv7 | arm64 | sim | sim32 | sim64`
 
 ## Bootstrap TURN server
 1. Create `config.json` at root directory with the following format:
