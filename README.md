@@ -98,6 +98,8 @@
 1. HTTPS management interface can be accessed from the same ports as the main TURN listener.
     - i.e https://<PUBLIC_IP>:3478
     
+2. Make sure you run `chmod 400 YOUR_PRIVATE_KEY.pem` before running bootstrap command. Accessing AWS in general will fail if `.pem` file has wrong (overly open) permission.
+    
 #### Commands in Host
 1. `bash bin/turn/tail_remote_log.sh PRIVATE_KEY_LOCATION PUBLIC_IP`
     - Tail remote log file of TURN server
